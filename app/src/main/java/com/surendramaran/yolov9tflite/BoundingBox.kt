@@ -1,5 +1,5 @@
 package com.surendramaran.yolov9tflite
-//wag kag mag-alala di ko ipipilit sayo
+//okay lang yan pre meron kami ni phonky
 data class BoundingBox(
     val x1: Float,
     val y1: Float,
