@@ -272,7 +272,7 @@ class MainActivity : AppCompatActivity() {
             .setAutoCancel(true)
             .build()
 
-        notificationManager.notify(1, notification)
+        // notificationManager.notify(1, notification)
     }
 
     private fun createNotificationChannel() {
