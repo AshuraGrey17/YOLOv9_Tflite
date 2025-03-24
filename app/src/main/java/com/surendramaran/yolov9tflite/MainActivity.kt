@@ -226,17 +226,27 @@ class MainActivity : AppCompatActivity() {
         runOnUiThread {
             if (boundingBoxes.isNotEmpty()) {
                 val detectedClass = boundingBoxes[0].clsName
-                val severity = getSeverity(detectedClass).name
-                sendNotification(detectedClass, severity)
-                showNotification("$detectedClass detected! Severity: $severity")
+                val severity = getSeverity(detectedClass)
+
+                val delayMillis = when (severity) {
+                    Severity.HIGH -> 0L     // No delay for high severity
+                    Severity.MEDIUM -> 2000L  // 2 seconds delay
+                    Severity.LOW -> 5000L  // 5 seconds delay
+                }
+
+                binding.inferenceTime.text = "${inferenceTime}ms"
+                binding.overlay.apply {
+                    setResults(boundingBoxes)
+                    invalidate()
+                }
+
+                // Delay the notification only for lower severity detections
+                binding.overlay.postDelayed({
+                    sendNotification(detectedClass, severity.name)
+                    showNotification("$detectedClass detected! Severity: ${severity.name}")
+                }, delayMillis)
             } else {
                 hideNotification()
-            }
-
-            binding.inferenceTime.text = "${inferenceTime}ms"
-            binding.overlay.apply {
-                setResults(boundingBoxes)
-                invalidate()
             }
         }
     }
@@ -264,16 +274,21 @@ class MainActivity : AppCompatActivity() {
     private fun sendNotification(detection: String, severity: String) {
         val notificationManager = NotificationManagerCompat.from(this)
 
-        val notification = NotificationCompat.Builder(this, "detection_channel")
-            .setSmallIcon(R.drawable.ic_notification) // Replace with your app's icon
-            .setContentTitle("Object Detected")
-            .setContentText("$detection detected with severity: $severity")
-            .setPriority(NotificationCompat.PRIORITY_HIGH)
-            .setAutoCancel(true)
-            .build()
+        if (ContextCompat.checkSelfPermission(this, Manifest.permission.POST_NOTIFICATIONS) == PackageManager.PERMISSION_GRANTED) {
+            val notification = NotificationCompat.Builder(this, "detection_channel")
+                .setSmallIcon(R.drawable.ic_notification) // Replace with your app's icon
+                .setContentTitle("Object Detected")
+                .setContentText("$detection detected with severity: $severity")
+                .setPriority(NotificationCompat.PRIORITY_HIGH)
+                .setAutoCancel(true)
+                .build()
 
-        // notificationManager.notify(1, notification)
+            notificationManager.notify(1, notification)
+        } else {
+            Log.e("Notification", "Notification permission not granted.")
+        }
     }
+
 
     private fun createNotificationChannel() {
         if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O) {
