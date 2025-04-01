@@ -6,12 +6,12 @@
     android:padding="16dp"
     android:background="@android:color/white">
     <ImageView
-        android:id="@+id/cancelMenuButton"
-        android:layout_width="24dp"
-        android:layout_height="24dp"
-        android:layout_gravity="end"
-        android:src="@android:drawable/ic_menu_close_clear_cancel"
-        android:paddingTop="10dp"/>
+        android:id="@+id/cancelButton"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:src="@drawable/ic_baseline_clear_24"
+        android:layout_gravity="right"
+        android:layout_margin="16dp" />
     <TextView
         android:id="@+id/menuTitle"
         android:layout_width="wrap_content"
