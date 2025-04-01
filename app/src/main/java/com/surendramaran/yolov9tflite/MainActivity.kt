@@ -2,9 +2,6 @@ package com.surendramaran.yolov9tflite
 
 import android.Manifest
 import android.app.Dialog
-import android.app.NotificationChannel
-import android.app.NotificationManager
-import android.content.Context
 import android.content.pm.PackageManager
 import android.graphics.Bitmap
 import android.graphics.Color
@@ -16,11 +13,14 @@ import android.view.Gravity
 import android.view.View
 import android.view.ViewGroup
 import android.view.Window
+import android.widget.Button
+import android.widget.CompoundButton
 import android.widget.ImageView
 import android.widget.LinearLayout
 import android.widget.Switch
 import android.widget.TextView
 import android.widget.Toast
+import android.widget.ToggleButton
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
@@ -32,8 +32,6 @@ import androidx.camera.core.Preview
 import androidx.camera.lifecycle.ProcessCameraProvider
 import androidx.cardview.widget.CardView
 import androidx.core.app.ActivityCompat
-import androidx.core.app.NotificationCompat
-import androidx.core.app.NotificationManagerCompat
 import androidx.core.content.ContextCompat
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
@@ -77,8 +75,6 @@ class MainActivity : AppCompatActivity() {
 
         enableEdgeToEdge()
         setContentView(binding.root)
-        createNotificationChannel()
-        checkAndRequestNotificationPermission()
         ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main)) { v, insets ->
             val systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars())
             v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom)
@@ -99,8 +95,6 @@ class MainActivity : AppCompatActivity() {
             ActivityCompat.requestPermissions(this, REQUIRED_PERMISSIONS, REQUEST_CODE_PERMISSIONS)
         }
 
-        bindListeners()
-
         // Initialize notification components
         notificationBanner = findViewById(R.id.detectionNotificationCard)
         notificationText = findViewById(R.id.detectionNotificationText)
@@ -112,19 +106,6 @@ class MainActivity : AppCompatActivity() {
 
         // Floating Action Button for showing bottom dialog
         binding.fab.setOnClickListener { showBottomDialog() }
-    }
-
-    private fun bindListeners() {
-        binding.apply {
-            isGpu.setOnCheckedChangeListener { buttonView, isChecked ->
-                cameraExecutor.submit {
-                    detector?.restart(isGpu = isChecked)
-                }
-                buttonView.setBackgroundColor(
-                    ContextCompat.getColor(baseContext, if (isChecked) R.color.orange else R.color.gray)
-                )
-            }
-        }
     }
 
     private fun startCamera() {
@@ -227,26 +208,15 @@ class MainActivity : AppCompatActivity() {
             if (boundingBoxes.isNotEmpty()) {
                 val detectedClass = boundingBoxes[0].clsName
                 val severity = getSeverity(detectedClass)
-
-                val delayMillis = when (severity) {
-                    Severity.HIGH -> 0L     // No delay for high severity
-                    Severity.MEDIUM -> 2000L  // 2 seconds delay
-                    Severity.LOW -> 5000L  // 5 seconds delay
-                }
-
-                binding.inferenceTime.text = "${inferenceTime}ms"
-                binding.overlay.apply {
-                    setResults(boundingBoxes)
-                    invalidate()
-                }
-
-                // Delay the notification only for lower severity detections
-                binding.overlay.postDelayed({
-                    sendNotification(detectedClass, severity.name)
-                    showNotification("$detectedClass detected! Severity: ${severity.name}")
-                }, delayMillis)
+                showNotification("$detectedClass detected! Severity: ${severity.name}")
             } else {
                 hideNotification()
+            }
+
+            binding.inferenceTime.text = "${inferenceTime}ms"
+            binding.overlay.apply {
+                setResults(boundingBoxes)
+                invalidate()
             }
         }
     }
@@ -254,54 +224,6 @@ class MainActivity : AppCompatActivity() {
     fun onEmptyDetect() {
         runOnUiThread {
             hideNotification()
-        }
-    }
-    private fun checkAndRequestNotificationPermission() {
-        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.TIRAMISU) {
-            if (ContextCompat.checkSelfPermission(
-                    this,
-                    Manifest.permission.POST_NOTIFICATIONS
-                ) != PackageManager.PERMISSION_GRANTED
-            ) {
-                ActivityCompat.requestPermissions(
-                    this,
-                    arrayOf(Manifest.permission.POST_NOTIFICATIONS),
-                    REQUEST_CODE_PERMISSIONS
-                )
-            }
-        }
-    }
-    private fun sendNotification(detection: String, severity: String) {
-        val notificationManager = NotificationManagerCompat.from(this)
-
-        if (ContextCompat.checkSelfPermission(this, Manifest.permission.POST_NOTIFICATIONS) == PackageManager.PERMISSION_GRANTED) {
-            val notification = NotificationCompat.Builder(this, "detection_channel")
-                .setSmallIcon(R.drawable.ic_notification) // Replace with your app's icon
-                .setContentTitle("Object Detected")
-                .setContentText("$detection detected with severity: $severity")
-                .setPriority(NotificationCompat.PRIORITY_HIGH)
-                .setAutoCancel(true)
-                .build()
-
-            notificationManager.notify(1, notification)
-        } else {
-            Log.e("Notification", "Notification permission not granted.")
-        }
-    }
-
-
-    private fun createNotificationChannel() {
-        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O) {
-            val name = "Detection Notifications"
-            val descriptionText = "Notifications for detected objects"
-            val importance = NotificationManager.IMPORTANCE_HIGH
-            val channel = NotificationChannel("detection_channel", name, importance).apply {
-                description = descriptionText
-            }
-
-            val notificationManager: NotificationManager =
-                getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
-            notificationManager.createNotificationChannel(channel)
         }
     }
 
@@ -326,20 +248,45 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-    // LayoutActivity methods for dialog management
     private fun showBottomDialog() {
         val dialog = createDialog(R.layout.bottomsheetlayout)
         dialog.show()
 
+        // Access the views from the inflated dialog layout
+        val isGpuToggle: ToggleButton = dialog.findViewById(R.id.isGpu)
         val menuButton: FloatingActionButton? = dialog.findViewById(R.id.menuButton)
+        val mapButton: Button? = dialog.findViewById(R.id.mapButton) // Ensure this button is defined in your layout
         val cancelButton: ImageView? = dialog.findViewById(R.id.cancelButton)
+
+        // Set up the listener for the GPU toggle button
+        isGpuToggle.setOnCheckedChangeListener { buttonView: CompoundButton, isChecked: Boolean ->
+            cameraExecutor.submit {
+                detector?.restart(isGpu = isChecked)
+            }
+            buttonView.setBackgroundColor(
+                ContextCompat.getColor(baseContext, if (isChecked) R.color.orange else R.color.gray)
+            )
+        }
 
         menuButton?.setOnClickListener {
             dialog.dismiss()
             showMenuBottomDialog()
         }
 
+        mapButton?.setOnClickListener {
+            dialog.dismiss()
+            showMapDialog() // Call the method to show the map dialog
+        }
+
         cancelButton?.setOnClickListener { dialog.dismiss() }
+    }
+
+    private fun showMapDialog() {
+        val dialog = createDialog(R.layout.bottomsheet_map) // Ensure this layout exists
+        dialog.show()
+
+        val cancelMapButton: ImageView? = dialog.findViewById(R.id.cancelButton)
+        cancelMapButton?.setOnClickListener { dialog.dismiss() }
     }
 
     private fun showMenuBottomDialog() {
