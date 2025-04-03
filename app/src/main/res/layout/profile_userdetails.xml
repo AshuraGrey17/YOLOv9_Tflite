@@ -2,10 +2,18 @@
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:orientation="vertical"
     android:padding="16dp"
     android:background="@android:color/white">
 
+    <ImageView
+        android:id="@+id/cancelButton"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:src="@drawable/ic_baseline_clear_24"
+        android:layout_gravity="right"
+        android:layout_margin="16dp" />
     <!-- Profile Title (Centered) -->
     <TextView
         android:id="@+id/menuTitle"
@@ -69,16 +77,13 @@
             android:textColor="@color/black"
             android:textSize="16sp"/>
 
-        <com.google.android.material.textfield.TextInputLayout
+        <EditText
+            android:id="@+id/editTextName"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_weight="1">
-
-            <com.google.android.material.textfield.TextInputEditText
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:hint="Name" />
-        </com.google.android.material.textfield.TextInputLayout>
+            android:hint="Enter Name"
+            android:background="@android:drawable/edit_text"
+            android:padding="8dp"/>
     </LinearLayout>
 
     <!-- Email Address Field -->
@@ -97,16 +102,14 @@
             android:textColor="@color/black"
             android:textSize="16sp"/>
 
-        <com.google.android.material.textfield.TextInputLayout
+        <EditText
+            android:id="@+id/editTextEmail"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_weight="1">
-
-            <com.google.android.material.textfield.TextInputEditText
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:hint="Emaill" />
-        </com.google.android.material.textfield.TextInputLayout>
+            android:hint="Enter Email"
+            android:background="@android:drawable/edit_text"
+            android:padding="8dp"
+            android:inputType="textEmailAddress"/>
     </LinearLayout>
 
     <!-- Password Field -->
@@ -126,11 +129,13 @@
             android:textSize="16sp"/>
 
         <EditText
-            android:id="@+id/editTextTextPassword"
+            android:id="@+id/editTextPassword"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:inputType="textPassword" />
+            android:hint="Enter Password"
+            android:background="@android:drawable/edit_text"
+            android:padding="8dp"
+            android:inputType="textPassword"/>
     </LinearLayout>
 
     <!-- Change Password Field -->
@@ -150,11 +155,13 @@
             android:textSize="16sp"/>
 
         <EditText
-            android:id="@+id/editTextTextPassword2"
+            android:id="@+id/editTextChangePassword"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:inputType="textPassword" />
+            android:hint="Change Password"
+            android:background="@android:drawable/edit_text"
+            android:padding="8dp"
+            android:inputType="textPassword"/>
     </LinearLayout>
 
     <!-- Cancel Button (Top Right) -->
@@ -180,7 +187,8 @@
             android:layout_height="wrap_content"
             android:layout_weight="1"
             android:text="Clear"
-            android:textColor="@android:color/white"/>
+            android:backgroundTint="@color/yellow"
+            android:textColor="@android:color/black"/>
 
         <View
             android:layout_width="16dp"
@@ -192,8 +200,8 @@
             android:layout_height="wrap_content"
             android:layout_weight="1"
             android:text="Change"
-            android:textColor="@android:color/white"/>
+            android:backgroundTint="@color/yellow"
+            android:textColor="@android:color/black"/>
     </LinearLayout>
-
 
 </LinearLayout>

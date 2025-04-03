@@ -40,14 +40,22 @@
         android:layout_width="match_parent"
         android:layout_height="0dp"
         app:layout_constraintTop_toBottomOf="@id/detectionNotificationCard"
-        app:layout_constraintBottom_toTopOf="@id/frame_layout"
-        app:layout_constraintDimensionRatio="3:4"
+        app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
-        app:scaleType="fillStart"
-        tools:ignore="NotSibling" />
+        app:scaleType="fitCenter"/>
 
-    <!-- Overlay View -->
+    <!-- Frame Layout for Capturing -->
+    <FrameLayout
+        android:id="@+id/frame_layout"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        app:layout_constraintTop_toTopOf="@id/view_finder"
+        app:layout_constraintBottom_toBottomOf="@id/view_finder"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"/>
+
+    <!-- Overlay View for Object Detection -->
     <com.surendramaran.yolov9tflite.OverlayView
         android:id="@+id/overlay"
         android:layout_width="0dp"
@@ -57,7 +65,7 @@
         app:layout_constraintBottom_toBottomOf="@id/view_finder"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintDimensionRatio="3:4" />
+        app:layout_constraintDimensionRatio="3:4"/>
 
     <!-- Inference Speed Display -->
     <LinearLayout
@@ -80,61 +88,18 @@
             android:layout_width="72dp"
             android:layout_height="wrap_content"
             android:textColor="@color/white"
-            tools:text="100000ms" />
+            tools:text="100000ms"/>
     </LinearLayout>
 
-    <!-- GPU Toggle -->
-    <androidx.constraintlayout.widget.ConstraintLayout
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:background="@color/white"
-        android:paddingVertical="4dp"
-        app:layout_constraintBottom_toTopOf="@id/frame_layout"
-        tools:ignore="NotSibling">
-
-        <ToggleButton
-            android:id="@+id/isGpu"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:background="@color/orange"
-            android:textColor="#37474F"
-            android:textOff="@string/gpu"
-            android:textOn="@string/gpu"
-            app:layout_constraintBottom_toBottomOf="parent"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toTopOf="parent"
-            app:layout_constraintVertical_bias="0.5" />
-    </androidx.constraintlayout.widget.ConstraintLayout>
-
-    <!-- CoordinatorLayout for Bottom Navigation -->
+    <!-- CoordinatorLayout for Bottom Navigation and FAB -->
     <androidx.coordinatorlayout.widget.CoordinatorLayout
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
-
+        android:layout_height="wrap_content"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent">
 
-        <!-- Fragment Container -->
-        <FrameLayout
-            android:id="@+id/frame_layout"
-            android:layout_width="match_parent"
-            android:layout_height="656dp"
-            android:layout_marginBottom="70dp">
-
-        </FrameLayout>
-
-        <!-- BottomAppBar -->
-        <com.google.android.material.bottomappbar.BottomAppBar
-            android:id="@+id/bottomAppBar"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_gravity="bottom"
-            android:background="@color/white"
-            app:fabCradleMargin="10dp"
-            app:fabCradleRoundedCornerRadius="50dp"/>
-
+        <!-- Floating Action Button (FAB) -->
         <com.google.android.material.floatingactionbutton.FloatingActionButton
             android:id="@+id/fab"
             android:layout_width="wrap_content"
@@ -146,9 +111,7 @@
             android:focusable="true"
             android:src="@drawable/binding"
             android:visibility="visible"
-            app:maxImageSize="40dp" />
-
-        <!-- Floating Action Button (FAB) -->
+            app:maxImageSize="40dp"/>
     </androidx.coordinatorlayout.widget.CoordinatorLayout>
 
 </androidx.constraintlayout.widget.ConstraintLayout>
