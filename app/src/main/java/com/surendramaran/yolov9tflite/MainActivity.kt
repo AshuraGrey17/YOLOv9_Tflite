@@ -41,6 +41,13 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import java.util.concurrent.ExecutorService
 import java.util.concurrent.Executors
+import android.os.VibrationEffect
+import android.os.Vibrator
+import android.os.VibratorManager
+import android.widget.Button
+import android.widget.CompoundButton
+import android.widget.ToggleButton
+
 
 class MainActivity : AppCompatActivity() {
     private lateinit var binding: ActivityMainBinding
@@ -50,7 +57,7 @@ class MainActivity : AppCompatActivity() {
     private var imageAnalyzer: ImageAnalysis? = null
     private var camera: Camera? = null
     private var cameraProvider: ProcessCameraProvider? = null
-
+    private var isNotificationEnabled = true // Default is ON
     private var detector: Detector? = null
 
     private lateinit var cameraExecutor: ExecutorService
@@ -92,7 +99,6 @@ class MainActivity : AppCompatActivity() {
             ActivityCompat.requestPermissions(this, REQUIRED_PERMISSIONS, REQUEST_CODE_PERMISSIONS)
         }
 
-        bindListeners()
 
         // Initialize notification components
         notificationBanner = findViewById(R.id.detectionNotificationCard)
@@ -107,18 +113,6 @@ class MainActivity : AppCompatActivity() {
         binding.fab.setOnClickListener { showBottomDialog() }
     }
 
-    private fun bindListeners() {
-        binding.apply {
-            isGpu.setOnCheckedChangeListener { buttonView, isChecked ->
-                cameraExecutor.submit {
-                    detector?.restart(isGpu = isChecked)
-                }
-                buttonView.setBackgroundColor(
-                    ContextCompat.getColor(baseContext, if (isChecked) R.color.orange else R.color.gray)
-                )
-            }
-        }
-    }
 
     private fun startCamera() {
         val cameraProviderFuture = ProcessCameraProvider.getInstance(baseContext)
@@ -214,35 +208,74 @@ class MainActivity : AppCompatActivity() {
             else -> Severity.LOW
         }
     }
+    private var lastDetectionTime = 0L
+    private val detectionInterval = 2000 // Adjust time in milliseconds (e.g., 2000ms = 2 seconds)
 
     fun onDetect(boundingBoxes: List<BoundingBox>, inferenceTime: Long) {
+        val currentTime = System.currentTimeMillis()
+
+        if (currentTime - lastDetectionTime < detectionInterval) {
+            return // Skip detection if interval hasn't passed
+        }
+
+        lastDetectionTime = currentTime
+
         runOnUiThread {
             if (boundingBoxes.isNotEmpty()) {
-                val detectedClass = boundingBoxes[0].clsName
+                val detectedBox = boundingBoxes[0] // Only process the first detection
+                val detectedClass = detectedBox.clsName
                 val severity = getSeverity(detectedClass)
+
                 showNotification("$detectedClass detected! Severity: ${severity.name}")
+
+                if (severity == Severity.HIGH) {
+                    vibratePhone() // Vibrate for high severity detections
+                }
+
+                binding.overlay.apply {
+                    setResults(listOf(detectedBox)) // Pass only one bounding box
+                    invalidate()
+                }
             } else {
                 hideNotification()
             }
 
             binding.inferenceTime.text = "${inferenceTime}ms"
-            binding.overlay.apply {
-                setResults(boundingBoxes)
-                invalidate()
-            }
         }
     }
 
+    private fun vibratePhone() {
+        if (!isNotificationEnabled) return // 🚨 Stop vibration if notifications are off
+
+        val vibrator = if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.S) {
+            val vibratorManager = getSystemService(VibratorManager::class.java)
+            vibratorManager.defaultVibrator
+        } else {
+            @Suppress("DEPRECATION")
+            getSystemService(Vibrator::class.java)
+        }
+
+        if (vibrator != null && vibrator.hasVibrator()) {
+            val vibrationEffect = VibrationEffect.createOneShot(500, VibrationEffect.DEFAULT_AMPLITUDE)
+            vibrator.vibrate(vibrationEffect)
+        }
+    }
     fun onEmptyDetect() {
         runOnUiThread {
             hideNotification()
         }
     }
 
-    // Show notification with dynamic severity color
     private fun showNotification(detection: String) {
-        val detectedClass = detection.split(" ")[0] // Extracts only the detected class name
-        val severity = getSeverity(detectedClass) // Now correctly assigns severity
+        Log.d("Notification", "isNotificationEnabled = $isNotificationEnabled") // Debugging log
+
+        if (!isNotificationEnabled) {
+            Log.d("Notification", "Notification blocked because isNotificationEnabled = false")
+            return
+        }
+
+        val detectedClass = detection.split(" ")[0]
+        val severity = getSeverity(detectedClass)
 
         notificationBanner.setCardBackgroundColor(ContextCompat.getColor(this, severity.color))
         notificationText.text = detection
@@ -265,15 +298,41 @@ class MainActivity : AppCompatActivity() {
         val dialog = createDialog(R.layout.bottomsheetlayout)
         dialog.show()
 
+        // Access the views from the inflated dialog layout
+        val isGpuToggle: ToggleButton = dialog.findViewById(R.id.isGpu)
         val menuButton: FloatingActionButton? = dialog.findViewById(R.id.menuButton)
+        val mapButton: Button? = dialog.findViewById(R.id.mapButton) // Ensure this button is defined in your layout
         val cancelButton: ImageView? = dialog.findViewById(R.id.cancelButton)
+
+        // Set up the listener for the GPU toggle button
+        isGpuToggle.setOnCheckedChangeListener { buttonView: CompoundButton, isChecked: Boolean ->
+            cameraExecutor.submit {
+                detector?.restart(isGpu = isChecked)
+            }
+            buttonView.setBackgroundColor(
+                ContextCompat.getColor(baseContext, if (isChecked) R.color.orange else R.color.gray)
+            )
+        }
 
         menuButton?.setOnClickListener {
             dialog.dismiss()
             showMenuBottomDialog()
         }
 
+        mapButton?.setOnClickListener {
+            dialog.dismiss()
+            showMapDialog() // Call the method to show the map dialog
+        }
+
         cancelButton?.setOnClickListener { dialog.dismiss() }
+    }
+
+    private fun showMapDialog() {
+        val dialog = createDialog(R.layout.bottomsheet_map) // Ensure this layout exists
+        dialog.show()
+
+        val cancelMapButton: ImageView? = dialog.findViewById(R.id.cancelButton)
+        cancelMapButton?.setOnClickListener { dialog.dismiss() }
     }
 
     private fun showMenuBottomDialog() {
@@ -380,9 +439,21 @@ class MainActivity : AppCompatActivity() {
 
     fun Notificationsswitch(view: View) {
         val switch = view as Switch
-        val isChecked = switch.isChecked
-        Toast.makeText(this, if (isChecked) "Notifications Enabled" else "Notifications Disabled", Toast.LENGTH_SHORT).show()
+        isNotificationEnabled = switch.isChecked // ✅ Update the flag
+
+        if (!isNotificationEnabled) {
+            hideNotification() // Hide any active notifications
+        }
+
+        Toast.makeText(
+            this,
+            if (isNotificationEnabled) "Notifications Enabled" else "Notifications Disabled",
+            Toast.LENGTH_SHORT
+        ).show()
+
+        Log.d("NotificationSwitch", "isNotificationEnabled = $isNotificationEnabled") // Debugging log
     }
+
 
     fun Nightmodeswitch(view: View) {
         val switch = view as Switch
