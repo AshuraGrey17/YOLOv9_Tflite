@@ -4,179 +4,255 @@
     android:layout_height="wrap_content"
     android:orientation="vertical"
     android:padding="16dp"
-    android:background="@android:color/white">
-    <ImageView
-        android:id="@+id/cancelButton"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:src="@drawable/ic_baseline_clear_24"
-        android:layout_gravity="right"
-        android:layout_margin="16dp" />
-    <TextView
-        android:id="@+id/menuTitle"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="Settings"
-        android:textSize="18sp"
-        android:textStyle="bold"
-        android:paddingBottom="10dp"/>
+    android:background="@drawable/dialogbg">
 
+    <!-- ✅ Top Bar -->
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:padding="8dp">
+
+        <!-- Center Top Button -->
+        <ImageView
+            android:id="@+id/topCenterButton"
+            android:layout_width="70dp"
+            android:layout_height="wrap_content"
+            android:layout_centerInParent="true"
+            android:backgroundTint="@color/black"
+            android:src="@drawable/ic_round_remove_24"
+            android:scaleType="centerCrop" />
+
+        <!-- Cancel (X) Button -->
+        <ImageView
+            android:id="@+id/cancelMenuButton"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignParentEnd="true"
+            android:layout_marginEnd="8dp"
+            android:src="@drawable/ic_baseline_clear_24" />
+    </RelativeLayout>
+
+    <!-- Title -->
     <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:gravity="center_horizontal"
+        android:paddingBottom="8dp">
+
+        <TextView
+            android:id="@+id/menuTitle"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Settings"
+            android:textSize="18sp"
+            android:textStyle="bold"/>
+    </LinearLayout>
+
+    <!-- ✅ Alert Toggle -->
+    <LinearLayout
+        android:background="@drawable/border_yellow"
         android:id="@+id/layoutAlerts"
         android:orientation="horizontal"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:padding="10dp">
+        android:padding="10dp"
+        android:gravity="center_vertical">
 
         <ImageView
             android:layout_width="40dp"
             android:layout_height="40dp"
             android:scaleType="fitCenter"
-            android:src="@drawable/alert"/>
+            android:src="@drawable/alert" />
 
         <TextView
-            android:layout_width="wrap_content"
+            android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:text="Alert"
             android:textColor="@color/black"
-            android:layout_marginLeft="16dp"
+            android:layout_marginStart="16dp"
             android:textSize="16sp"
-            android:layout_weight="1"/>
+            android:layout_weight="1" />
 
         <Switch
+            android:theme="@style/CustomSwitchStyle"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:onClick="Alertswitch">
-
-        </Switch>
+            android:onClick="Alertswitch" />
     </LinearLayout>
 
+    <!-- ✅ Alert Mode -->
     <LinearLayout
+        android:layout_marginTop="8dp"
+        android:background="@drawable/border_yellow"
         android:id="@+id/layoutAlertMode"
-        android:orientation="horizontal"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:padding="10dp">
+        android:padding="10dp"
+        android:gravity="center_vertical"
+        android:orientation="horizontal">
 
         <ImageView
             android:layout_width="40dp"
             android:layout_height="40dp"
             android:scaleType="fitCenter"
-            android:src="@drawable/mode"/>
+            android:src="@drawable/mode" />
 
         <TextView
-            android:layout_width="wrap_content"
+            android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:text="Alert Mode:"
+            android:layout_marginStart="16dp"
+            android:layout_weight="1"
+            android:text="Alert Mode"
             android:textColor="@color/black"
-            android:layout_marginLeft="16dp"
-            android:textSize="16sp"/>
+            android:textSize="16sp" />
+
+        <ImageView
+            android:id="@+id/AlertmodeButton"
+            android:layout_width="40dp"
+            android:layout_height="30dp"
+            android:scaleType="fitCenter"
+            android:src="@drawable/right_arrow"
+            android:layout_gravity="end"
+            android:layout_centerVertical="true"/>
+
     </LinearLayout>
 
+    <!-- ✅ Notification Toggle -->
     <LinearLayout
+        android:layout_marginTop="8dp"
+        android:background="@drawable/border_yellow"
         android:id="@+id/layoutNotification"
         android:orientation="horizontal"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:padding="10dp">
+        android:padding="10dp"
+        android:gravity="center_vertical">
 
         <ImageView
             android:layout_width="40dp"
             android:layout_height="40dp"
             android:scaleType="fitCenter"
-            android:src="@drawable/notification"/>
+            android:src="@drawable/notification" />
 
         <TextView
-            android:layout_width="wrap_content"
+            android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:text="Notification:"
             android:textColor="@color/black"
-            android:layout_marginLeft="16dp"
+            android:layout_marginStart="16dp"
             android:textSize="16sp"
-            android:layout_weight="1"/>
-
+            android:layout_weight="1" />
 
         <Switch
+            android:theme="@style/CustomSwitchStyle"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:onClick="Notificationsswitch">
-
-        </Switch>
+            android:onClick="Notificationsswitch" />
     </LinearLayout>
 
+    <!-- ✅ Night Mode Toggle -->
     <LinearLayout
+        android:layout_marginTop="8dp"
+        android:background="@drawable/border_yellow"
         android:id="@+id/layoutNightmode"
         android:orientation="horizontal"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:padding="10dp">
+        android:padding="10dp"
+        android:gravity="center_vertical">
 
         <ImageView
             android:layout_width="40dp"
             android:layout_height="40dp"
             android:scaleType="fitCenter"
-            android:src="@drawable/nightmode"/>
+            android:src="@drawable/nightmode" />
 
         <TextView
-            android:layout_width="wrap_content"
+            android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:text="Night Mode:"
             android:textColor="@color/black"
-            android:layout_marginLeft="16dp"
+            android:layout_marginStart="16dp"
             android:textSize="16sp"
-            android:layout_weight="1"/>
+            android:layout_weight="1" />
 
         <Switch
+            android:theme="@style/CustomSwitchStyle"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:onClick="Nightmodeswitch">
-
-        </Switch>
+            android:onClick="Nightmodeswitch" />
     </LinearLayout>
 
+    <!-- ✅ Reset -->
     <LinearLayout
+        android:layout_marginTop="8dp"
+        android:background="@drawable/border_yellow"
         android:id="@+id/layoutReset"
         android:orientation="horizontal"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:padding="10dp">
+        android:padding="10dp"
+        android:gravity="center_vertical">
 
         <ImageView
             android:layout_width="40dp"
             android:layout_height="40dp"
             android:scaleType="fitCenter"
-            android:src="@drawable/reset"/>
+            android:src="@drawable/reset" />
 
         <TextView
-            android:layout_width="wrap_content"
+            android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:text="Reset"
             android:textColor="@color/black"
-            android:layout_marginLeft="16dp"
-            android:textSize="16sp"/>
+            android:layout_marginStart="16dp"
+            android:textSize="16sp"
+            android:layout_weight="1" />
+
+        <ImageView
+            android:id="@+id/ResetButton"
+            android:layout_width="40dp"
+            android:layout_height="30dp"
+            android:scaleType="fitCenter"
+            android:src="@drawable/right_arrow"
+            android:layout_centerVertical="true" />
     </LinearLayout>
 
+    <!-- ✅ External Camera Option -->
     <LinearLayout
+        android:layout_marginTop="8dp"
+        android:background="@drawable/border_yellow"
         android:id="@+id/layoutExternalCamera"
         android:orientation="horizontal"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:padding="10dp">
+        android:padding="10dp"
+        android:gravity="center_vertical">
 
         <ImageView
             android:layout_width="40dp"
             android:layout_height="40dp"
             android:scaleType="fitCenter"
-            android:src="@drawable/camera"/>
+            android:src="@drawable/camera" />
 
         <TextView
-            android:layout_width="wrap_content"
+            android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:text="Choose External Camera"
             android:textColor="@color/black"
-            android:layout_marginLeft="16dp"
-            android:textSize="16sp"/>
-    </LinearLayout>
+            android:layout_marginStart="16dp"
+            android:textSize="16sp"
+            android:layout_weight="1" />
 
+        <ImageView
+            android:id="@+id/ChooseExternalCameraButton"
+            android:layout_width="40dp"
+            android:layout_height="30dp"
+            android:scaleType="fitCenter"
+            android:src="@drawable/right_arrow"
+            android:layout_gravity="end"
+            android:layout_centerVertical="true" />
+    </LinearLayout>
 
 </LinearLayout>

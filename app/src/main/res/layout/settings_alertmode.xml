@@ -4,29 +4,53 @@
     android:layout_height="wrap_content"
     android:orientation="vertical"
     android:padding="16dp"
-    android:background="@android:color/white">
+    android:background="@drawable/dialogbg">
 
-
-    <ImageView
-        android:id="@+id/cancelButton"
-        android:layout_width="wrap_content"
+    <!-- ✅ Top Bar -->
+    <RelativeLayout
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:src="@drawable/ic_baseline_clear_24"
-        android:layout_gravity="right"
-        android:layout_margin="16dp" />
+        android:padding="8dp">
 
-    <!-- Menu Title -->
-    <TextView
-        android:id="@+id/menuTitle"
-        android:layout_width="wrap_content"
+        <!-- Center Top Button -->
+        <ImageView
+            android:id="@+id/topCenterButton"
+            android:layout_width="70dp"
+            android:layout_height="wrap_content"
+            android:layout_centerInParent="true"
+            android:backgroundTint="@color/black"
+            android:src="@drawable/ic_round_remove_24"
+            android:scaleType="centerCrop" />
+
+        <!-- Cancel (X) Button -->
+        <ImageView
+            android:id="@+id/cancelMenuButton"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignParentEnd="true"
+            android:layout_marginEnd="8dp"
+            android:src="@drawable/ic_baseline_clear_24" />
+    </RelativeLayout>
+    <!-- Title -->
+    <LinearLayout
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="Detect Mode"
-        android:textSize="18sp"
-        android:textStyle="bold"
-        android:paddingBottom="10dp" />
+        android:orientation="horizontal"
+        android:gravity="center_horizontal"
+        android:paddingBottom="8dp">
+
+        <TextView
+            android:id="@+id/menuTitle"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Detect Mode"
+            android:textSize="18sp"
+            android:textStyle="bold"/>
+    </LinearLayout>
 
     <!-- Road Cracks -->
     <LinearLayout
+        android:background="@drawable/border_yellow"
         android:id="@+id/layoutRoadcracks"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
@@ -43,7 +67,7 @@
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:text="Road Cracks"
-            android:textColor="@color/lavender"
+            android:textColor="@color/black"
             android:layout_marginLeft="16dp"
             android:textSize="16sp"
             android:layout_weight="1" />
@@ -56,6 +80,8 @@
 
     <!-- Road Potholes -->
     <LinearLayout
+        android:layout_marginTop="8dp"
+        android:background="@drawable/border_yellow"
         android:id="@+id/layoutRoadpotholes"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
@@ -73,7 +99,7 @@
             android:layout_height="wrap_content"
             android:layout_marginLeft="16dp"
             android:text="Road Potholes"
-            android:textColor="@color/lavender"
+            android:textColor="@color/black"
             android:textSize="16sp"
             android:layout_weight="1" />
 
@@ -85,6 +111,8 @@
 
     <!-- Speed Bump -->
     <LinearLayout
+        android:layout_marginTop="8dp"
+        android:background="@drawable/border_yellow"
         android:id="@+id/layoutRoadspeedbump"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
@@ -102,7 +130,7 @@
             android:layout_height="wrap_content"
             android:layout_marginLeft="16dp"
             android:text="Speed Bump"
-            android:textColor="@color/lavender"
+            android:textColor="@color/black"
             android:textSize="16sp"
             android:layout_weight="1" />
 
@@ -114,6 +142,8 @@
 
     <!-- Road Manhole -->
     <LinearLayout
+        android:layout_marginTop="8dp"
+        android:background="@drawable/border_yellow"
         android:id="@+id/layoutRoadmanhole"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
@@ -130,7 +160,7 @@
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:text="Road Manhole"
-            android:textColor="@color/lavender"
+            android:textColor="@color/black"
             android:layout_marginLeft="16dp"
             android:textSize="16sp"
             android:layout_weight="1" />
@@ -143,6 +173,8 @@
 
     <!-- Unfinished Pavements -->
     <LinearLayout
+        android:layout_marginTop="8dp"
+        android:background="@drawable/border_yellow"
         android:id="@+id/layoutunfinishedpavements"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
@@ -159,7 +191,7 @@
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:text="Unfinished Pavements"
-            android:textColor="@color/lavender"
+            android:textColor="@color/black"
             android:layout_marginLeft="16dp"
             android:textSize="16sp"
             android:layout_weight="1" />
@@ -172,6 +204,8 @@
 
     <!-- Puddles -->
     <LinearLayout
+        android:layout_marginTop="8dp"
+        android:background="@drawable/border_yellow"
         android:id="@+id/layoutRoadpuddles"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
@@ -188,7 +222,7 @@
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:text="Puddles"
-            android:textColor="@color/lavender"
+            android:textColor="@color/black"
             android:layout_marginLeft="16dp"
             android:textSize="16sp"
             android:layout_weight="1" />

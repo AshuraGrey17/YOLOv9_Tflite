@@ -6,19 +6,41 @@
     android:layout_height="wrap_content"
     android:orientation="vertical"
     android:padding="16dp"
-    android:background="@android:color/white">
-    <ImageView
-        android:id="@+id/cancelButton"
-        android:layout_width="wrap_content"
+    android:background="@drawable/dialogbg">
+
+    <!-- ✅ Top Bar with Center and Cancel Buttons -->
+    <RelativeLayout
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:src="@drawable/ic_baseline_clear_24"
-        android:layout_gravity="right"
-        android:layout_margin="16dp" />
+        android:padding="8dp">
+
+        <!-- Center Top Button -->
+        <ImageView
+            android:id="@+id/topCenterButton"
+            android:layout_width="70dp"
+            android:layout_height="wrap_content"
+            android:layout_centerInParent="true"
+            android:backgroundTint="@color/black"
+            android:src="@drawable/ic_round_remove_24"
+            android:scaleType="centerCrop" />
+
+        <!-- Cancel (X) Button -->
+        <ImageView
+            android:id="@+id/cancelMenuButton"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignParentEnd="true"
+            android:layout_marginEnd="8dp"
+            android:src="@drawable/ic_baseline_clear_24" />
+    </RelativeLayout>
+
+    <!-- Title -->
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="horizontal"
-        android:gravity="center_vertical">
+        android:gravity="center_horizontal"
+        android:paddingBottom="8dp">
 
         <TextView
             android:id="@+id/menuTitle"
@@ -26,32 +48,89 @@
             android:layout_height="wrap_content"
             android:text="Report"
             android:textSize="18sp"
-            android:textStyle="bold"
-            android:layout_marginLeft="16dp"/>
+            android:textStyle="bold" />
     </LinearLayout>
 
+    <!-- ✅ Scrollable Content Area -->
     <ScrollView
         android:layout_width="match_parent"
-        android:layout_height="match_parent">
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:layout_marginTop="8dp">
 
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:orientation="vertical">
+            android:orientation="vertical"
+            android:background="@drawable/border_rect"
+            android:padding="16dp">
 
-            <!-- Example Entry -->
+            <!-- Combined Info + Image layout -->
             <LinearLayout
+                android:id="@+id/detectionBlock"
                 android:layout_width="match_parent"
-                android:layout_height="match_parent"
+                android:layout_height="wrap_content"
                 android:orientation="horizontal"
+                android:gravity="center_vertical"
                 android:padding="10dp">
 
-            </LinearLayout>
+                <!-- Text Column -->
+                <LinearLayout
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:orientation="vertical">
 
-            <!-- Add more entries dynamically here -->
+                    <TextView
+                        android:id="@+id/Roadtype"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Road Type"
+                        android:textColor="@color/black"
+                        android:textSize="18sp"
+                        android:textStyle="bold" />
+
+                    <TextView
+                        android:id="@+id/location"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Location"
+                        android:textColor="@color/black"
+                        android:textSize="14sp"
+                        android:layout_marginTop="4dp" />
+
+                    <TextView
+                        android:id="@+id/time"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Time"
+                        android:textColor="@color/black"
+                        android:textSize="14sp"
+                        android:layout_marginTop="4dp" />
+
+                    <TextView
+                        android:id="@+id/date"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Date"
+                        android:textColor="@color/black"
+                        android:textSize="14sp"
+                        android:layout_marginTop="4dp" />
+                </LinearLayout>
+
+                <!-- Image on the right -->
+                <ImageView
+                    android:id="@+id/reportImage"
+                    android:layout_width="100dp"
+                    android:layout_height="100dp"
+                    android:layout_marginStart="16dp"
+                    android:scaleType="centerCrop"
+                    android:background="@drawable/border_rect" />
+            </LinearLayout>
         </LinearLayout>
     </ScrollView>
 
+    <!-- ✅ Action Buttons (Check and Deny) -->
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
@@ -59,14 +138,13 @@
         android:gravity="center"
         android:paddingTop="10dp">
 
-
         <Button
             android:id="@+id/checkButton"
             android:layout_width="80dp"
             android:layout_height="50dp"
             android:backgroundTint="@color/green"
             android:drawableTop="@drawable/check"
-            android:gravity="center"/>
+            android:gravity="center" />
 
         <Button
             android:id="@+id/denyButton"
@@ -75,8 +153,7 @@
             android:layout_marginStart="16dp"
             android:backgroundTint="@color/red"
             android:drawableTop="@drawable/cancel"
-            android:gravity="center"/>
+            android:gravity="center" />
     </LinearLayout>
-
 
 </LinearLayout>

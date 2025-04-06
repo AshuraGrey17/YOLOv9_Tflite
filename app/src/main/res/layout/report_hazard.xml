@@ -4,67 +4,109 @@
     android:layout_height="wrap_content"
     android:orientation="vertical"
     android:padding="16dp"
-    android:background="@android:color/white">
+    android:background="@drawable/dialogbg">
 
-    <ImageView
-        android:id="@+id/cancelButton"
-        android:layout_width="wrap_content"
+    <!-- ✅ Top Bar -->
+    <RelativeLayout
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:src="@drawable/ic_baseline_clear_24"
-        android:layout_gravity="right"
-        android:layout_margin="16dp" />
+        android:padding="8dp">
+
+        <ImageView
+            android:id="@+id/topCenterButton"
+            android:layout_width="70dp"
+            android:layout_height="wrap_content"
+            android:layout_centerInParent="true"
+            android:backgroundTint="@color/black"
+            android:src="@drawable/ic_round_remove_24"
+            android:scaleType="centerCrop" />
+
+        <ImageView
+            android:id="@+id/cancelMenuButton"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignParentEnd="true"
+            android:src="@drawable/ic_baseline_clear_24"
+            android:layout_marginEnd="8dp"/>
+    </RelativeLayout>
 
     <!-- Title -->
-    <TextView
-        android:id="@+id/menuTitle"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="Report"
-        android:textSize="18sp"
-        android:textStyle="bold"
-        android:paddingBottom="10dp"/>
-
-    <!-- Hazard Information (Aligned Properly) -->
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:orientation="vertical"
-        android:padding="8dp">
+        android:orientation="horizontal"
+        android:gravity="center_horizontal"
+        android:paddingBottom="8dp">
 
         <TextView
-            android:id="@+id/typeofhazard"
+            android:id="@+id/menuTitle"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Type of Hazard:"
-            android:textStyle="bold"/>
-
-        <TextView
-            android:id="@+id/location"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="Location:"
-            android:textStyle="bold"/>
-
-        <TextView
-            android:id="@+id/time"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="Time:"
-            android:textStyle="bold"/>
-
-        <TextView
-            android:id="@+id/date"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="Date:"
+            android:text="Report"
+            android:textSize="18sp"
             android:textStyle="bold"/>
     </LinearLayout>
+    <!-- Hazard Info -->
 
-    <!-- Scrollable Report Items -->
-    <ScrollView
+    <!-- Hazard Info Block with Image -->
+    <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginTop="8dp">
+        android:orientation="horizontal"
+        android:background="@drawable/border_rect"
+        android:padding="12dp"
+        android:gravity="center_vertical">
+
+        <!-- Text Info Column -->
+        <LinearLayout
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:orientation="vertical">
+
+            <TextView
+                android:id="@+id/typeofhazard"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Type of Hazard: "
+                android:textStyle="bold"
+                android:textSize="16sp"
+                android:layout_marginBottom="4dp"/>
+
+            <TextView
+                android:id="@+id/location"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Location:"
+                android:textSize="14sp"
+                android:layout_marginBottom="4dp"/>
+
+            <TextView
+                android:id="@+id/time"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Time:"
+                android:textSize="14sp"
+                android:layout_marginBottom="4dp"/>
+
+            <TextView
+                android:id="@+id/date"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Date"
+                android:textSize="14sp"/>
+        </LinearLayout>
+
+        <!-- ImageView on the right -->
+        <ImageView
+            android:id="@+id/reportImage"
+            android:layout_width="100dp"
+            android:layout_height="100dp"
+            android:layout_marginStart="16dp"
+            android:background="@drawable/border_rect"
+            android:scaleType="centerCrop"
+         />
+    </LinearLayout>
 
         <LinearLayout
             android:layout_width="match_parent"
@@ -72,8 +114,10 @@
             android:orientation="vertical"
             android:paddingBottom="8dp">
 
-            <!-- Reusable Item Layout (Hazards List) -->
+            <!-- List of Hazards (Repeatable Layout) -->
+            <!-- 1 -->
             <LinearLayout
+                android:background="@drawable/border_yellow"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:orientation="horizontal"
@@ -96,13 +140,15 @@
                     android:textSize="16sp"/>
 
                 <CheckBox
-                    android:id="@+id/checkBox"
+                    android:id="@+id/RoadcrackcheckBox"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"/>
             </LinearLayout>
 
-            <!-- Road Potholes -->
+            <!-- 2 -->
             <LinearLayout
+                android:layout_marginTop="8dp"
+                android:background="@drawable/border_yellow"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:orientation="horizontal"
@@ -125,13 +171,15 @@
                     android:textSize="16sp"/>
 
                 <CheckBox
-                    android:id="@+id/checkBox2"
+                    android:id="@+id/RoadpotholeCheckbox"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"/>
             </LinearLayout>
 
-            <!-- Speed Bump -->
+            <!-- 3 -->
             <LinearLayout
+                android:layout_marginTop="8dp"
+                android:background="@drawable/border_yellow"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:orientation="horizontal"
@@ -154,13 +202,15 @@
                     android:textSize="16sp"/>
 
                 <CheckBox
-                    android:id="@+id/checkBox3"
+                    android:id="@+id/SpeedbumpCheckbox"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"/>
             </LinearLayout>
 
-            <!-- Road Manhole -->
+            <!-- 4 -->
             <LinearLayout
+                android:layout_marginTop="8dp"
+                android:background="@drawable/border_yellow"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:orientation="horizontal"
@@ -183,13 +233,15 @@
                     android:textSize="16sp"/>
 
                 <CheckBox
-                    android:id="@+id/checkBox4"
+                    android:id="@+id/RoadmanholeCheckbox"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"/>
             </LinearLayout>
 
-            <!-- Unfinished Pavements -->
+            <!-- 5 -->
             <LinearLayout
+                android:layout_marginTop="8dp"
+                android:background="@drawable/border_yellow"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:orientation="horizontal"
@@ -212,13 +264,15 @@
                     android:textSize="16sp"/>
 
                 <CheckBox
-                    android:id="@+id/checkBox5"
+                    android:id="@+id/UnfinishedpavementCheckbox"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"/>
             </LinearLayout>
 
-            <!-- Puddles -->
+            <!-- 6 -->
             <LinearLayout
+                android:layout_marginTop="8dp"
+                android:background="@drawable/border_yellow"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:orientation="horizontal"
@@ -241,20 +295,19 @@
                     android:textSize="16sp"/>
 
                 <CheckBox
-                    android:id="@+id/checkBox6"
+                    android:id="@+id/puddlesCheckbox"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"/>
             </LinearLayout>
 
         </LinearLayout>
-    </ScrollView>
 
-    <!-- Report Hazard Button (Centered) -->
+
+    <!-- Submit Button -->
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:gravity="center"
-        android:padding="10dp">
+        android:gravity="center">
 
         <Button
             android:id="@+id/reportHazardbutton"

@@ -5,15 +5,34 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:orientation="vertical"
     android:padding="16dp"
-    android:background="@android:color/white">
+    android:background="@drawable/dialogbg">
 
-    <ImageView
-        android:id="@+id/cancelButton"
-        android:layout_width="wrap_content"
+    <!-- ✅ Top Container for Cancel Button (Right) & Center Button (Middle) -->
+    <RelativeLayout
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:src="@drawable/ic_baseline_clear_24"
-        android:layout_gravity="right"
-        android:layout_margin="16dp" />
+        android:padding="8dp">
+
+        <!-- Top Center Button -->
+        <ImageView
+            android:id="@+id/topCenterButton"
+            android:layout_width="70dp"
+            android:layout_height="wrap_content"
+            android:layout_centerInParent="true"
+            android:backgroundTint="@color/black"
+            android:src="@drawable/ic_round_remove_24"
+            android:scaleType="centerCrop" />
+
+        <!-- Cancel (X) Button on Right -->
+        <ImageView
+            android:id="@+id/cancelMenuButton"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignParentEnd="true"
+            android:src="@drawable/ic_baseline_clear_24"
+            android:layout_marginEnd="8dp"/>
+    </RelativeLayout>
+
     <!-- Profile Title (Centered) -->
     <TextView
         android:id="@+id/menuTitle"
@@ -37,12 +56,11 @@
         android:padding="20dp"
         android:elevation="4dp">
 
-        <!-- Profile Image and Username -->
         <LinearLayout
             android:orientation="horizontal"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:gravity="center">
+            android:gravity="center_vertical">
 
             <ImageView
                 android:layout_width="60dp"
@@ -67,20 +85,24 @@
         android:orientation="horizontal"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:padding="10dp">
+        android:padding="10dp"
+        android:gravity="center_vertical">
 
         <TextView
-            android:layout_width="wrap_content"
+            android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:layout_marginRight="10dp"
+            android:layout_marginEnd="10dp"
             android:text="Name"
             android:textColor="@color/black"
-            android:textSize="16sp"/>
+            android:textSize="16sp"
+            android:layout_weight="1"
+            android:gravity="start"/>
 
         <EditText
             android:id="@+id/editTextName"
-            android:layout_width="match_parent"
+            android:layout_width="0dp"
             android:layout_height="wrap_content"
+            android:layout_weight="2"
             android:hint="Enter Name"
             android:background="@android:drawable/edit_text"
             android:padding="8dp"/>
@@ -92,20 +114,24 @@
         android:orientation="horizontal"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:padding="10dp">
+        android:padding="10dp"
+        android:gravity="center_vertical">
 
         <TextView
-            android:layout_width="wrap_content"
+            android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:layout_marginRight="10dp"
+            android:layout_marginEnd="10dp"
             android:text="Email Address"
             android:textColor="@color/black"
-            android:textSize="16sp"/>
+            android:textSize="16sp"
+            android:layout_weight="1"
+            android:gravity="start"/>
 
         <EditText
             android:id="@+id/editTextEmail"
-            android:layout_width="match_parent"
+            android:layout_width="0dp"
             android:layout_height="wrap_content"
+            android:layout_weight="2"
             android:hint="Enter Email"
             android:background="@android:drawable/edit_text"
             android:padding="8dp"
@@ -118,20 +144,24 @@
         android:orientation="horizontal"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:padding="10dp">
+        android:padding="10dp"
+        android:gravity="center_vertical">
 
         <TextView
-            android:layout_width="wrap_content"
+            android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:layout_marginRight="10dp"
+            android:layout_marginEnd="10dp"
             android:text="Password"
             android:textColor="@color/black"
-            android:textSize="16sp"/>
+            android:textSize="16sp"
+            android:layout_weight="1"
+            android:gravity="start"/>
 
         <EditText
             android:id="@+id/editTextPassword"
-            android:layout_width="match_parent"
+            android:layout_width="0dp"
             android:layout_height="wrap_content"
+            android:layout_weight="2"
             android:hint="Enter Password"
             android:background="@android:drawable/edit_text"
             android:padding="8dp"
@@ -144,36 +174,31 @@
         android:orientation="horizontal"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:padding="10dp">
+        android:padding="10dp"
+        android:gravity="center_vertical">
 
         <TextView
-            android:layout_width="wrap_content"
+            android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:layout_marginRight="10dp"
+            android:layout_marginEnd="10dp"
             android:text="Change Password"
             android:textColor="@color/black"
-            android:textSize="16sp"/>
+            android:textSize="16sp"
+            android:layout_weight="1"
+            android:gravity="start"/>
 
         <EditText
             android:id="@+id/editTextChangePassword"
-            android:layout_width="match_parent"
+            android:layout_width="0dp"
             android:layout_height="wrap_content"
+            android:layout_weight="2"
             android:hint="Change Password"
             android:background="@android:drawable/edit_text"
             android:padding="8dp"
             android:inputType="textPassword"/>
     </LinearLayout>
 
-    <!-- Cancel Button (Top Right) -->
-    <ImageView
-        android:id="@+id/cancelMenuButton"
-        android:layout_width="24dp"
-        android:layout_height="24dp"
-        android:layout_gravity="end"
-        android:src="@android:drawable/ic_menu_close_clear_cancel"
-        android:paddingTop="10dp"/>
-
-    <!-- Buttons Aligned in a Single Row -->
+    <!-- Buttons Row -->
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"

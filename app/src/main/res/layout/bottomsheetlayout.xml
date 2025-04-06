@@ -10,6 +10,7 @@
         android:id="@+id/topCenterButton"
         android:layout_width="70dp"
         android:layout_height="wrap_content"
+        android:backgroundTint="@color/black"
         android:src="@drawable/ic_round_remove_24"
         android:layout_centerHorizontal="true"
         android:layout_marginTop="16dp"
@@ -17,12 +18,12 @@
 
     <!-- ✅ Close Button (X) on Top Right -->
     <ImageView
-        android:id="@+id/cancelButton"
+        android:id="@+id/cancelMenuButton"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:src="@drawable/ic_baseline_clear_24"
         android:layout_alignParentEnd="true"
-        android:layout_margin="16dp" />
+        android:layout_margin="16dp"
+        android:src="@drawable/ic_baseline_clear_24" />
 
     <!-- ✅ Horizontal Layout for GPU, Menu, and Map Buttons -->
     <LinearLayout
@@ -57,13 +58,80 @@
             android:visibility="visible"
             android:layout_marginEnd="12dp" />
 
-        <!-- ✅ Map Button -->
         <Button
             android:id="@+id/mapButton"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="Map"
             android:backgroundTint="@color/yellow"
-            android:textColor="@android:color/black"/> />
+            android:textColor="@android:color/black"
+            android:padding="12dp"/>
+
     </LinearLayout>
+
+    <!-- Border for Detection Layout -->
+    <LinearLayout
+        android:id="@+id/bottomBorder"
+        android:layout_width="match_parent"
+        android:layout_height="200dp"
+        android:layout_below="@id/buttonContainer"
+        android:layout_marginTop="8dp"
+        android:background="@drawable/border_rect"
+        android:orientation="vertical"
+        android:padding="16dp">
+
+        <!-- Detection Layouts inside the border -->
+        <LinearLayout
+            android:id="@+id/detection1"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:padding="10dp">
+
+            <TextView
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:text="Detecting:"
+                android:textColor="@color/black"
+                android:layout_marginLeft="16dp"
+                android:textSize="16sp"
+                android:layout_weight="1" />
+        </LinearLayout>
+
+        <LinearLayout
+            android:id="@+id/detection2"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:padding="10dp">
+
+            <TextView
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:text="Detecting:"
+                android:textColor="@color/black"
+                android:layout_marginLeft="16dp"
+                android:textSize="16sp"
+                android:layout_weight="1" />
+        </LinearLayout>
+
+        <LinearLayout
+            android:id="@+id/detection3"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:padding="10dp">
+
+            <TextView
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:text="Detecting:"
+                android:textColor="@color/black"
+                android:layout_marginLeft="16dp"
+                android:textSize="16sp"
+                android:layout_weight="1" />
+        </LinearLayout>
+
+    </LinearLayout>
+
 </RelativeLayout>

@@ -109,6 +109,7 @@
             android:backgroundTint="@color/white"
             android:clickable="true"
             android:focusable="true"
+
             android:src="@drawable/binding"
             android:visibility="visible"
             app:maxImageSize="40dp"/>
