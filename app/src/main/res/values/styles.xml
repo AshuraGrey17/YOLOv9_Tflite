@@ -1,6 +1,13 @@
-<?xml version="1.0" encoding="utf-8"?>
 <resources>
     <style name="Theme.SplashScreen" parent="Theme.MaterialComponents.Light.NoActionBar">
         <item name="android:windowBackground">@drawable/splash_background</item>
+    </style>
+
+    <!-- Custom Switch Style -->
+    <style name="CustomSwitchStyle">
+        <!-- Green color when switch is on -->
+        <item name="colorControlActivated">@color/green</item>
+        <!-- Red color when switch is off -->
+        <item name="colorControlNormal">@color/red</item>
     </style>
 </resources>
