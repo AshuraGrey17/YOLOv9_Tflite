@@ -3,6 +3,7 @@ package com.surendramaran.yolov9tflite
 import android.Manifest
 import android.app.Dialog
 import android.content.pm.PackageManager
+import android.content.res.ColorStateList
 import android.graphics.Bitmap
 import android.graphics.Color
 import android.graphics.Matrix
@@ -302,16 +303,24 @@ class MainActivity : AppCompatActivity() {
         val isGpuToggle: ToggleButton = dialog.findViewById(R.id.isGpu)
         val menuButton: FloatingActionButton? = dialog.findViewById(R.id.menuButton)
         val mapButton: Button? = dialog.findViewById(R.id.mapButton) // Ensure this button is defined in your layout
-        val cancelButton: ImageView? = dialog.findViewById(R.id.cancelButton)
+        val cancelMenuButton: ImageView? = dialog.findViewById(R.id.cancelMenuButton)
 
         // Set up the listener for the GPU toggle button
+      // Set up the listener for the GPU toggle button
         isGpuToggle.setOnCheckedChangeListener { buttonView: CompoundButton, isChecked: Boolean ->
             cameraExecutor.submit {
                 detector?.restart(isGpu = isChecked)
             }
-            buttonView.setBackgroundColor(
-                ContextCompat.getColor(baseContext, if (isChecked) R.color.orange else R.color.gray)
-            )
+
+            // Change the background color of the ToggleButton based on the checked state
+            val backgroundColor = if (isChecked) {
+                ContextCompat.getColor(baseContext, R.color.yellow) // On color
+            } else {
+                ContextCompat.getColor(baseContext, R.color.gray) // Off color
+            }
+
+            // Update the backgroundTint using the appropriate color
+            buttonView.backgroundTintList = ColorStateList.valueOf(backgroundColor)
         }
 
         menuButton?.setOnClickListener {
@@ -324,7 +333,7 @@ class MainActivity : AppCompatActivity() {
             showMapDialog() // Call the method to show the map dialog
         }
 
-        cancelButton?.setOnClickListener { dialog.dismiss() }
+        cancelMenuButton?.setOnClickListener { dialog.dismiss() }
     }
 
     private fun showMapDialog() {
@@ -337,7 +346,6 @@ class MainActivity : AppCompatActivity() {
 
     private fun showMenuBottomDialog() {
         val dialog = createDialog(R.layout.bottomsheet_menu)
-
         val settingsLayout: LinearLayout? = dialog.findViewById(R.id.layoutSettings)
         val profileLayout: LinearLayout? = dialog.findViewById(R.id.layoutProfile)
         val reportLayout: LinearLayout? = dialog.findViewById(R.id.layoutReport)
@@ -390,7 +398,6 @@ class MainActivity : AppCompatActivity() {
 
     private fun showProfileMenuDialog() {
         val dialog = createDialog(R.layout.profile)
-
         val userDetailsLayout: LinearLayout? = dialog.findViewById(R.id.layoutuserdetails)
         val signOutLayout: LinearLayout? = dialog.findViewById(R.id.layoutsignout)
         val cancelMenuButton: ImageView? = dialog.findViewById(R.id.cancelMenuButton)
