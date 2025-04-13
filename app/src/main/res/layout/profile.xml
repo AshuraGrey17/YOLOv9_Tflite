@@ -1,11 +1,49 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:orientation="vertical"
     android:padding="16dp"
-    android:background="@android:color/white">
+    android:background="@drawable/dialogbg">
 
+    <!-- ✅ Top buttons layout -->
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:padding="8dp">
+
+        <ImageView
+            android:id="@+id/Backbutton"
+            android:clickable="true"
+            android:layout_width="30dp"
+            android:layout_height="40dp"
+            android:src="@drawable/back_arrow"
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            android:layout_margin="16dp" />
+        <!-- Top Center Button -->
+        <ImageView
+            android:id="@+id/topCenterButton"
+            android:layout_width="70dp"
+            android:layout_height="wrap_content"
+            android:backgroundTint="@color/black"
+            android:src="@drawable/ic_round_remove_24"
+            android:scaleType="centerCrop"
+            android:layout_centerHorizontal="true" />
+
+
+        <!-- Cancel (X) Button on Right -->
+        <ImageView
+            android:id="@+id/cancelMenuButton"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignParentEnd="true"
+            android:src="@drawable/ic_baseline_clear_24"
+            android:layout_marginEnd="8dp"/>
+    </RelativeLayout>
+
+    <!-- Content Below -->
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
@@ -14,7 +52,6 @@
         android:padding="16dp"
         android:background="@android:color/white">
 
-        <!-- Profile Title (Centered) -->
         <TextView
             android:id="@+id/menuTitle"
             android:layout_width="wrap_content"
@@ -26,7 +63,6 @@
             android:layout_gravity="center"
             android:paddingBottom="10dp"/>
 
-        <!-- Profile Container (Centered) -->
         <LinearLayout
             android:id="@+id/layoutUsername"
             android:orientation="vertical"
@@ -37,7 +73,6 @@
             android:padding="20dp"
             android:elevation="4dp">
 
-            <!-- Profile Image and Username -->
             <LinearLayout
                 android:orientation="horizontal"
                 android:layout_width="wrap_content"
@@ -45,6 +80,7 @@
                 android:gravity="center">
 
                 <ImageView
+                    android:id="@+id/UserPicture"
                     android:layout_width="60dp"
                     android:layout_height="60dp"
                     android:src="@drawable/profile"
@@ -55,61 +91,95 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="User#123"
-                    android:textSize="16sp"
+                    android:textSize="30sp"
                     android:textStyle="bold"
                     android:textColor="@android:color/black"
                     android:gravity="center_vertical"/>
             </LinearLayout>
         </LinearLayout>
-
     </LinearLayout>
 
-
-    <!-- Profile -->
-    <LinearLayout
-        android:id="@+id/layoutuserdetails"
-        android:orientation="horizontal"
+    <!-- Profile Section wrapped in CardView -->
+    <androidx.cardview.widget.CardView
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_below="@id/layoutSettings"
-        android:padding="10dp">
+        android:layout_marginTop="16dp"
+        app:cardElevation="6dp"
+        app:cardCornerRadius="12dp"
+        app:cardBackgroundColor="@android:color/white">
 
-        <ImageView
-            android:layout_width="wrap_content"
+        <LinearLayout
+            android:id="@+id/layoutuserdetails"
+            android:orientation="horizontal"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:src="@drawable/lock"/>
+            android:padding="10dp"
+            android:gravity="center_vertical">
 
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="User Details"
-            android:textColor="@color/black"
-            android:layout_marginLeft="30dp"
-            android:textSize="16sp"/>
-    </LinearLayout>
+            <ImageView
+                android:layout_width="24dp"
+                android:layout_height="24dp"
+                android:src="@drawable/lock"
+                android:scaleType="fitCenter" />
 
-    <!-- Report -->
-    <LinearLayout
-        android:id="@+id/layoutsignout"
-        android:orientation="horizontal"
+            <TextView
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:text="User Details"
+                android:textColor="@color/black"
+                android:layout_marginStart="16dp"
+                android:textSize="16sp"
+                android:layout_weight="1" />
+
+            <ImageView
+                android:id="@+id/UserdetailsNavigationArrow"
+                android:layout_width="24dp"
+                android:layout_height="24dp"
+                android:src="@drawable/right_arrow"
+                android:scaleType="fitCenter" />
+        </LinearLayout>
+    </androidx.cardview.widget.CardView>
+
+    <!-- Sign Out Section wrapped in CardView -->
+    <androidx.cardview.widget.CardView
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_below="@id/layoutProfile"
-        android:padding="10dp">
+        android:layout_marginTop="16dp"
+        app:cardElevation="6dp"
+        app:cardCornerRadius="12dp"
+        app:cardBackgroundColor="@android:color/white">
 
-        <ImageView
-            android:layout_width="wrap_content"
+        <LinearLayout
+            android:id="@+id/layoutsignout"
+            android:orientation="horizontal"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:src="@drawable/signout"/>
+            android:padding="10dp"
+            android:gravity="center_vertical">
 
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="Sign out"
-            android:textColor="@color/black"
-            android:layout_marginLeft="30dp"
-            android:textSize="16sp"/>
-    </LinearLayout>
+            <ImageView
+                android:layout_width="24dp"
+                android:layout_height="24dp"
+                android:src="@drawable/signout"
+                android:scaleType="fitCenter" />
+
+            <TextView
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:text="Sign out"
+                android:textColor="@color/black"
+                android:layout_marginStart="16dp"
+                android:textSize="16sp"
+                android:layout_weight="1" />
+
+            <ImageView
+                android:id="@+id/SignoutNavigationArrow"
+                android:layout_width="24dp"
+                android:layout_height="24dp"
+                android:src="@drawable/right_arrow"
+                android:scaleType="fitCenter" />
+        </LinearLayout>
+    </androidx.cardview.widget.CardView>
 
 
 </LinearLayout>

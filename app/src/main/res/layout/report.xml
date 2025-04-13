@@ -4,20 +4,41 @@
     android:layout_height="wrap_content"
     android:orientation="vertical"
     android:padding="16dp"
-    android:background="@android:color/white">
-    <ImageView
-        android:id="@+id/cancelMenuButton"
-        android:layout_width="24dp"
-        android:layout_height="24dp"
-        android:src="@android:drawable/ic_menu_close_clear_cancel"
-        android:layout_gravity="end"
-        android:padding="8dp"/>
+    android:background="@drawable/dialogbg">
 
+    <!-- ✅ Top Container for Cancel Button (Right) & Center Button (Middle) -->
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:padding="8dp">
+
+        <!-- Top Center Button -->
+        <ImageView
+            android:id="@+id/topCenterButton"
+            android:layout_width="70dp"
+            android:layout_height="wrap_content"
+            android:layout_centerInParent="true"
+            android:backgroundTint="@color/black"
+            android:src="@drawable/ic_round_remove_24"
+            android:scaleType="centerCrop" />
+
+        <!-- Cancel (X) Button on Right -->
+        <ImageView
+            android:id="@+id/cancelMenuButton"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignParentEnd="true"
+            android:src="@drawable/ic_baseline_clear_24"
+            android:layout_marginEnd="8dp"/>
+    </RelativeLayout>
+
+    <!-- Title -->
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="horizontal"
-        android:gravity="center_vertical">
+        android:gravity="center_horizontal"
+        android:paddingBottom="8dp">
 
         <TextView
             android:id="@+id/menuTitle"
@@ -25,18 +46,21 @@
             android:layout_height="wrap_content"
             android:text="Report"
             android:textSize="18sp"
-            android:textStyle="bold"
-            android:layout_marginLeft="16dp"/>
+            android:textStyle="bold"/>
     </LinearLayout>
 
+    <!-- View Suggested Button -->
     <Button
         android:id="@+id/viewSuggestedButton"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="View Suggested"
         android:layout_gravity="end"
+        android:backgroundTint="@color/yellow"
+        android:textColor="@android:color/black"
         android:padding="8dp" />
 
+    <!-- Detection History Title -->
     <TextView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
@@ -47,26 +71,30 @@
         android:layout_gravity="center"
         android:layout_marginTop="10dp"/>
 
+    <!-- Scrollable Detection History List -->
     <ScrollView
         android:layout_width="match_parent"
-        android:layout_height="match_parent">
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:fillViewport="true">
 
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="vertical">
 
-            <!-- Example Entry -->
+            <!-- History Entries Container -->
             <LinearLayout
                 android:id="@+id/historyLayout"
+                android:background="@drawable/border_rect"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:orientation="horizontal"
-                android:padding="10dp">
+                android:orientation="vertical"
+                android:padding="100dp">
 
+                <!-- You can dynamically add history rows here -->
             </LinearLayout>
 
-            <!-- Add more entries dynamically here -->
         </LinearLayout>
     </ScrollView>
 
