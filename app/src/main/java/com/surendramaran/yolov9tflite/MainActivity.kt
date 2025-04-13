@@ -61,18 +61,16 @@ class MainActivity : AppCompatActivity() {
     private var imageAnalyzer: ImageAnalysis? = null
     private var camera: Camera? = null
     private var cameraProvider: ProcessCameraProvider? = null
-    private var isNotificationEnabled = true // Default is ON
+    private var isNotificationEnabled = true
     private var detector: Detector? = null
+    private lateinit var alertSwitch: Switch
     private var reportImageView: ImageView? = null
     private var profileImageView: ImageView? = null
 
     private lateinit var cameraExecutor: ExecutorService
-
-    // CardView and TextView for heads-up notification
     private lateinit var notificationBanner: CardView
     private lateinit var notificationText: TextView
 
-    // Enum class for severity levels
     enum class Severity(val color: Int) {
         LOW(R.color.yellow),
         MEDIUM(R.color.orange),
@@ -105,17 +103,10 @@ class MainActivity : AppCompatActivity() {
             ActivityCompat.requestPermissions(this, REQUIRED_PERMISSIONS, REQUEST_CODE_PERMISSIONS)
         }
 
-
-        // Initialize notification components
         notificationBanner = findViewById(R.id.detectionNotificationCard)
         notificationText = findViewById(R.id.detectionNotificationText)
 
-        // Dismiss notification on tap
-        notificationBanner.setOnClickListener {
-            hideNotification()
-        }
-
-        // Floating Action Button for showing bottom dialog
+        notificationBanner.setOnClickListener { hideNotification() }
         binding.fab.setOnClickListener { showBottomDialog() }
     }
     private val imagePickerLauncher = registerForActivityResult(
@@ -389,15 +380,48 @@ class MainActivity : AppCompatActivity() {
 
         dialog.show()
     }
+    private fun disableAlertMode() {
+        detector?.setTargetClasses(emptyList())
+        toast("Alert mode disabled")
+    }
 
     private fun showAlertModeDialog() {
         val dialog = createDialog(R.layout.settings_alertmode)
         val backButton: ImageView? = dialog.findViewById(R.id.Backbutton)
         val cancelMenuButton: ImageView? = dialog.findViewById(R.id.cancelMenuButton)
 
+        val roadCrackCheckbox = dialog.findViewById<CheckBox>(R.id.RoadcrackCheckbox)
+        val roadPotholeCheckbox = dialog.findViewById<CheckBox>(R.id.RoadpotholeCheckbox)
+        val speedBumpCheckbox = dialog.findViewById<CheckBox>(R.id.SpeedbumpCheckbox)
+        val roadManholeCheckbox = dialog.findViewById<CheckBox>(R.id.RoadmanholeCheckbox)
+        val unfinishedPavementCheckbox = dialog.findViewById<CheckBox>(R.id.UnfinishedpavementCheckbox)
+        val puddlesCheckbox = dialog.findViewById<CheckBox>(R.id.puddlesCheckbox)
+        val detectButton = dialog.findViewById<Button>(R.id.viewSuggestedButton)
+
+        val currentClasses = detector?.getTargetClasses() ?: emptyList()
+        roadCrackCheckbox.isChecked = currentClasses.contains("Road-cracks")
+        roadPotholeCheckbox.isChecked = currentClasses.contains("Potholes")
+        speedBumpCheckbox.isChecked = currentClasses.contains("Speed-bumps")
+        roadManholeCheckbox.isChecked = currentClasses.contains("Manholes")
+        unfinishedPavementCheckbox.isChecked = currentClasses.contains("Unfinished pavements")
+        puddlesCheckbox.isChecked = currentClasses.contains("Puddle")
+
+        detectButton.setOnClickListener {
+            val selectedClasses = mutableListOf<String>()
+            if (roadCrackCheckbox.isChecked) selectedClasses.add("Road-cracks")
+            if (roadPotholeCheckbox.isChecked) selectedClasses.add("Potholes")
+            if (speedBumpCheckbox.isChecked) selectedClasses.add("Speed-bumps")
+            if (roadManholeCheckbox.isChecked) selectedClasses.add("Manholes")
+            if (unfinishedPavementCheckbox.isChecked) selectedClasses.add("Unfinished pavements")
+            if (puddlesCheckbox.isChecked) selectedClasses.add("Puddle")
+
+            detector?.setTargetClasses(selectedClasses)
+            dialog.dismiss()
+        }
+
         backButton?.setOnClickListener {
             dialog.dismiss()
-            showSettingsMenuDialog() // Go back to main menu
+            showSettingsMenuDialog()
         }
         cancelMenuButton?.setOnClickListener { dialog.dismiss() }
 
