@@ -6,6 +6,16 @@
     android:layout_height="match_parent"
     android:background="@drawable/dialogbg">
 
+    <ImageView
+        android:id="@+id/Backbutton"
+        android:layout_width="30dp"
+        android:layout_height="40dp"
+        android:clickable="true"
+        android:src="@drawable/back_arrow"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        android:layout_margin="16dp" />
+
     <!-- ✅ Top Center Close Button -->
     <ImageView
         android:id="@+id/topCenterButton"

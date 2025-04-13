@@ -91,28 +91,64 @@
             tools:text="100000ms"/>
     </LinearLayout>
 
-    <!-- CoordinatorLayout for Bottom Navigation and FAB -->
-    <androidx.coordinatorlayout.widget.CoordinatorLayout
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
+    <!-- Detection Bottom Panel -->
+    <LinearLayout
+        android:id="@+id/bottomBorder"
+        android:layout_width="0dp"
+        android:layout_height="200dp"
+        android:background="@drawable/dialogbg"
+        android:orientation="vertical"
+        android:paddingTop="32dp"
+        android:paddingBottom="20dp"
+        android:paddingHorizontal="20dp"
+        android:elevation="8dp"
+        android:gravity="center_horizontal"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent">
 
-        <!-- Floating Action Button (FAB) -->
         <com.google.android.material.floatingactionbutton.FloatingActionButton
             android:id="@+id/fab"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_gravity="bottom|center_horizontal"
-            android:layout_margin="16dp"
+            android:src="@drawable/binding"
             android:backgroundTint="@color/white"
             android:clickable="true"
             android:focusable="true"
+            android:translationY="-27dp"
+            app:maxImageSize="50dp"
+            app:layout_constraintBottom_toTopOf="@id/bottomBorder"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:rippleColor="@android:color/white"/>
 
-            android:src="@drawable/binding"
-            android:visibility="visible"
-            app:maxImageSize="40dp"/>
-    </androidx.coordinatorlayout.widget.CoordinatorLayout>
+        <!-- Detection TextViews -->
+        <TextView
+            android:id="@+id/detection1"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Detecting"
+            android:textColor="@color/black"
+            android:textSize="15sp" />
+
+        <TextView
+            android:id="@+id/detection2"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Detecting"
+            android:textColor="@color/black"
+            android:textSize="15sp" />
+
+        <TextView
+            android:id="@+id/detection3"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Detecting"
+            android:textColor="@color/black"
+            android:textSize="15sp"/>
+    </LinearLayout>
+
+    <!-- FAB without the circular shape, only the drawable inside -->
+
 
 </androidx.constraintlayout.widget.ConstraintLayout>

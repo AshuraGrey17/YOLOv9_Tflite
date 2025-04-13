@@ -1,20 +1,19 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:app="http://schemas.android.com/apk/res-auto"
-    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:orientation="vertical"
     android:padding="16dp"
     android:background="@drawable/dialogbg">
 
-    <!-- ✅ Top Bar with Center and Cancel Buttons -->
+    <!-- ✅ Top Container for Cancel Button (Right) & Center Button (Middle) -->
     <RelativeLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:padding="8dp">
 
-        <!-- Center Top Button -->
+        <!-- Top Center Button -->
         <ImageView
             android:id="@+id/topCenterButton"
             android:layout_width="70dp"
@@ -33,14 +32,14 @@
             app:layout_constraintTop_toTopOf="parent"
             app:layout_constraintStart_toStartOf="parent"
             android:layout_margin="16dp" />
-        <!-- Cancel (X) Button -->
+        <!-- Cancel (X) Button on Right -->
         <ImageView
             android:id="@+id/cancelMenuButton"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_alignParentEnd="true"
-            android:layout_marginEnd="8dp"
-            android:src="@drawable/ic_baseline_clear_24" />
+            android:src="@drawable/ic_baseline_clear_24"
+            android:layout_marginEnd="8dp"/>
     </RelativeLayout>
 
     <!-- Title -->
@@ -57,33 +56,64 @@
             android:layout_height="wrap_content"
             android:text="Report"
             android:textSize="18sp"
-            android:textStyle="bold" />
+            android:textStyle="bold"/>
     </LinearLayout>
 
-    <!-- ✅ Scrollable Content Area -->
+    <androidx.cardview.widget.CardView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="end"
+        android:layout_marginTop="16dp"
+        app:cardElevation="6dp"
+        app:cardCornerRadius="12dp"
+        app:cardBackgroundColor="@color/white">
+
+        <Button
+            android:id="@+id/viewSuggestedButton"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="View Suggested"
+            android:backgroundTint="@android:color/transparent"
+            android:textColor="@android:color/black"
+            android:padding="8dp"
+            android:elevation="0dp" />
+    </androidx.cardview.widget.CardView>
+
+    <!-- Detection History Title -->
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Detection History"
+        android:textSize="16sp"
+        android:textStyle="bold"
+        android:gravity="center"
+        android:layout_gravity="center"
+        android:layout_marginTop="10dp"/>
+
+    <!-- Scrollable Detection History List -->
     <ScrollView
         android:layout_width="match_parent"
         android:layout_height="0dp"
         android:layout_weight="1"
-        android:layout_marginTop="8dp">
+        android:fillViewport="true">
 
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:orientation="vertical"
-            android:background="@drawable/border_rect"
-            android:padding="16dp">
+            android:orientation="vertical">
 
-            <!-- Combined Info + Image layout -->
+            <!-- History Entries Container -->
             <LinearLayout
-                android:id="@+id/detectionBlock"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:orientation="horizontal"
-                android:gravity="center_vertical"
-                android:padding="10dp">
+                android:padding="8dp"
+                android:layout_marginBottom="8dp"
+                android:background="@drawable/border_rect"
+                android:elevation="2dp">
 
-                <!-- Text Column -->
+
+                <!-- Right: Texts -->
                 <LinearLayout
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
@@ -91,78 +121,57 @@
                     android:orientation="vertical">
 
                     <TextView
-                        android:id="@+id/Roadtype"
+                        android:id="@+id/roadType"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:text="Road Type"
-                        android:textColor="@color/black"
-                        android:textSize="18sp"
-                        android:textStyle="bold" />
-
-                    <TextView
-                        android:id="@+id/location"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="Location"
-                        android:textColor="@color/black"
-                        android:textSize="14sp"
-                        android:layout_marginTop="4dp" />
-
-                    <TextView
-                        android:id="@+id/time"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="Time"
-                        android:textColor="@color/black"
-                        android:textSize="14sp"
-                        android:layout_marginTop="4dp" />
+                        android:textStyle="bold"
+                        android:textSize="16sp"
+                        android:textColor="@color/black" />
 
                     <TextView
                         android:id="@+id/date"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:text="Date"
-                        android:textColor="@color/black"
                         android:textSize="14sp"
-                        android:layout_marginTop="4dp" />
-                </LinearLayout>
+                        android:textColor="@color/black"
+                        android:layout_marginTop="2dp"/>
 
-                <!-- Image on the right -->
+                    <TextView
+                        android:id="@+id/severity"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="(severity)"
+                        android:textSize="14sp"
+                        android:textColor="@color/black"
+                        android:layout_marginTop="2dp"/>
+
+                    <TextView
+                        android:id="@+id/location"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Location"
+                        android:textSize="14sp"
+                        android:textColor="@color/black"
+                        android:layout_marginTop="2dp"/>
+
+
+                </LinearLayout>
+                <!-- Right: Image -->
                 <ImageView
                     android:id="@+id/reportImage"
-                    android:layout_width="100dp"
-                    android:layout_height="100dp"
-                    android:layout_marginStart="16dp"
+                    android:layout_width="80dp"
+                    android:layout_height="80dp"
                     android:scaleType="centerCrop"
+                    android:layout_marginStart="12dp"
                     android:background="@drawable/border_rect" />
             </LinearLayout>
+
         </LinearLayout>
+
+
+
     </ScrollView>
-
-    <!-- ✅ Action Buttons (Check and Deny) -->
-    <LinearLayout
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:orientation="horizontal"
-        android:gravity="center"
-        android:paddingTop="10dp">
-
-        <Button
-            android:id="@+id/checkButton"
-            android:layout_width="80dp"
-            android:layout_height="50dp"
-            android:backgroundTint="@color/green"
-            android:drawableTop="@drawable/check"
-            android:gravity="center" />
-
-        <Button
-            android:id="@+id/denyButton"
-            android:layout_width="80dp"
-            android:layout_height="50dp"
-            android:layout_marginStart="16dp"
-            android:backgroundTint="@color/red"
-            android:drawableTop="@drawable/cancel"
-            android:gravity="center" />
-    </LinearLayout>
 
 </LinearLayout>

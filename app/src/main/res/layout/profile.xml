@@ -13,6 +13,15 @@
         android:layout_height="wrap_content"
         android:padding="8dp">
 
+        <ImageView
+            android:id="@+id/Backbutton"
+            android:clickable="true"
+            android:layout_width="30dp"
+            android:layout_height="40dp"
+            android:src="@drawable/back_arrow"
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            android:layout_margin="16dp" />
         <!-- Top Center Button -->
         <ImageView
             android:id="@+id/topCenterButton"
@@ -22,6 +31,7 @@
             android:src="@drawable/ic_round_remove_24"
             android:scaleType="centerCrop"
             android:layout_centerHorizontal="true" />
+
 
         <!-- Cancel (X) Button on Right -->
         <ImageView
@@ -70,6 +80,7 @@
                 android:gravity="center">
 
                 <ImageView
+                    android:id="@+id/UserPicture"
                     android:layout_width="60dp"
                     android:layout_height="60dp"
                     android:src="@drawable/profile"
@@ -88,78 +99,87 @@
         </LinearLayout>
     </LinearLayout>
 
-    <!-- Profile Section with space between it and the previous layout -->
-    <LinearLayout
-        android:background="@drawable/border_yellow"
-        android:id="@+id/layoutuserdetails"
-        android:orientation="horizontal"
+    <!-- Profile Section wrapped in CardView -->
+    <androidx.cardview.widget.CardView
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:padding="10dp"
-        android:gravity="center_vertical"
-        android:layout_marginTop="16dp"> <!-- Added marginTop here for spacing -->
+        android:layout_marginTop="16dp"
+        app:cardElevation="6dp"
+        app:cardCornerRadius="12dp"
+        app:cardBackgroundColor="@android:color/white">
 
-        <!-- Lock Icon -->
-        <ImageView
-            android:layout_width="24dp"
-            android:layout_height="24dp"
-            android:src="@drawable/lock"
-            android:scaleType="fitCenter" />
-
-        <!-- Text -->
-        <TextView
-            android:layout_width="0dp"
+        <LinearLayout
+            android:id="@+id/layoutuserdetails"
+            android:orientation="horizontal"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="User Details"
-            android:textColor="@color/black"
-            android:layout_marginStart="16dp"
-            android:textSize="16sp"
-            android:layout_weight="1" />
+            android:padding="10dp"
+            android:gravity="center_vertical">
 
-        <!-- Right Arrow (aligned right and scaled properly) -->
-        <ImageView
-            android:id="@+id/UserdetailsNavigationArrow"
-            android:layout_width="24dp"
-            android:layout_height="24dp"
-            android:src="@drawable/right_arrow"
-            android:scaleType="fitCenter" />
-    </LinearLayout>
+            <ImageView
+                android:layout_width="24dp"
+                android:layout_height="24dp"
+                android:src="@drawable/lock"
+                android:scaleType="fitCenter" />
 
-    <!-- Sign Out Section with space between it and the previous layout -->
-    <LinearLayout
-        android:background="@drawable/border_yellow"
-        android:id="@+id/layoutsignout"
-        android:orientation="horizontal"
+            <TextView
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:text="User Details"
+                android:textColor="@color/black"
+                android:layout_marginStart="16dp"
+                android:textSize="16sp"
+                android:layout_weight="1" />
+
+            <ImageView
+                android:id="@+id/UserdetailsNavigationArrow"
+                android:layout_width="24dp"
+                android:layout_height="24dp"
+                android:src="@drawable/right_arrow"
+                android:scaleType="fitCenter" />
+        </LinearLayout>
+    </androidx.cardview.widget.CardView>
+
+    <!-- Sign Out Section wrapped in CardView -->
+    <androidx.cardview.widget.CardView
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:padding="10dp"
-        android:gravity="center_vertical"
-        android:layout_marginTop="16dp"> <!-- Added marginTop here for spacing -->
+        android:layout_marginTop="16dp"
+        app:cardElevation="6dp"
+        app:cardCornerRadius="12dp"
+        app:cardBackgroundColor="@android:color/white">
 
-        <!-- Sign Out Icon -->
-        <ImageView
-            android:layout_width="24dp"
-            android:layout_height="24dp"
-            android:src="@drawable/signout"
-            android:scaleType="fitCenter" />
-
-        <!-- Text -->
-        <TextView
-            android:layout_width="0dp"
+        <LinearLayout
+            android:id="@+id/layoutsignout"
+            android:orientation="horizontal"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="Sign out"
-            android:textColor="@color/black"
-            android:layout_marginStart="16dp"
-            android:textSize="16sp"
-            android:layout_weight="1" />
+            android:padding="10dp"
+            android:gravity="center_vertical">
 
-        <!-- Right Arrow Icon -->
-        <ImageView
-            android:id="@+id/SignoutNavigationArrow"
-            android:layout_width="24dp"
-            android:layout_height="24dp"
-            android:src="@drawable/right_arrow"
-            android:scaleType="fitCenter" />
-    </LinearLayout>
+            <ImageView
+                android:layout_width="24dp"
+                android:layout_height="24dp"
+                android:src="@drawable/signout"
+                android:scaleType="fitCenter" />
+
+            <TextView
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:text="Sign out"
+                android:textColor="@color/black"
+                android:layout_marginStart="16dp"
+                android:textSize="16sp"
+                android:layout_weight="1" />
+
+            <ImageView
+                android:id="@+id/SignoutNavigationArrow"
+                android:layout_width="24dp"
+                android:layout_height="24dp"
+                android:src="@drawable/right_arrow"
+                android:scaleType="fitCenter" />
+        </LinearLayout>
+    </androidx.cardview.widget.CardView>
+
 
 </LinearLayout>

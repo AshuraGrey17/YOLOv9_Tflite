@@ -2,6 +2,7 @@
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:orientation="vertical"
     android:padding="16dp"
     android:background="@drawable/dialogbg">
@@ -22,6 +23,15 @@
             android:src="@drawable/ic_round_remove_24"
             android:scaleType="centerCrop" />
 
+        <ImageView
+            android:id="@+id/Backbutton"
+            android:clickable="true"
+            android:layout_width="30dp"
+            android:layout_height="40dp"
+            android:src="@drawable/back_arrow"
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            android:layout_margin="16dp" />
         <!-- Cancel (X) Button -->
         <ImageView
             android:id="@+id/cancelMenuButton"
@@ -50,7 +60,6 @@
 
     <!-- Road Cracks -->
     <LinearLayout
-        android:background="@drawable/border_yellow"
         android:id="@+id/layoutRoadcracks"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
@@ -81,7 +90,6 @@
     <!-- Road Potholes -->
     <LinearLayout
         android:layout_marginTop="8dp"
-        android:background="@drawable/border_yellow"
         android:id="@+id/layoutRoadpotholes"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
@@ -112,7 +120,6 @@
     <!-- Speed Bump -->
     <LinearLayout
         android:layout_marginTop="8dp"
-        android:background="@drawable/border_yellow"
         android:id="@+id/layoutRoadspeedbump"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
@@ -143,7 +150,6 @@
     <!-- Road Manhole -->
     <LinearLayout
         android:layout_marginTop="8dp"
-        android:background="@drawable/border_yellow"
         android:id="@+id/layoutRoadmanhole"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
@@ -174,7 +180,6 @@
     <!-- Unfinished Pavements -->
     <LinearLayout
         android:layout_marginTop="8dp"
-        android:background="@drawable/border_yellow"
         android:id="@+id/layoutunfinishedpavements"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
@@ -205,7 +210,6 @@
     <!-- Puddles -->
     <LinearLayout
         android:layout_marginTop="8dp"
-        android:background="@drawable/border_yellow"
         android:id="@+id/layoutRoadpuddles"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
@@ -239,14 +243,25 @@
         android:layout_height="wrap_content"
         android:gravity="center"
         android:padding="10dp">
-
-        <Button
-            android:id="@+id/detectButton"
+        <androidx.cardview.widget.CardView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:backgroundTint="@color/yellow"
-            android:textColor="@android:color/black"
-            android:text="Detect" />
+            android:layout_gravity="end"
+            app:cardElevation="6dp"
+            app:cardCornerRadius="12dp"
+            app:cardBackgroundColor="@color/white"
+            android:padding="8dp">
+
+            <Button
+                android:id="@+id/viewSuggestedButton"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Detect"
+                android:backgroundTint="@android:color/transparent"
+                android:textColor="@android:color/black"
+                android:elevation="0dp"
+                android:padding="8dp"/>
+        </androidx.cardview.widget.CardView>
     </LinearLayout>
 
 </LinearLayout>
