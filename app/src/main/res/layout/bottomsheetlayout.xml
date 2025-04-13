@@ -38,6 +38,7 @@
 
     <!-- GPU Toggle wrapped in CardView -->
     <androidx.cardview.widget.CardView
+        android:id="@+id/gpuCard"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_below="@id/topCenterButton"
@@ -58,39 +59,42 @@
             android:backgroundTint="@android:color/transparent"/>
     </androidx.cardview.widget.CardView>
 
-    <!-- Map Button wrapped in CardView -->
-    <androidx.cardview.widget.CardView
-        android:layout_width="wrap_content"
+
+
+    <!-- 🔍 SearchView just below GPU, above map -->
+    <SearchView
+        android:id="@+id/searchView"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_below="@id/topCenterButton"
-        android:layout_alignParentStart="true"
-        android:layout_marginTop="16dp"
+        android:background="@drawable/border_rounded"
+        android:layout_below="@id/gpuCard"
+        android:layout_marginTop="12dp"
         android:layout_marginStart="16dp"
-        app:cardElevation="6dp"
-        app:cardCornerRadius="12dp"
-        app:cardBackgroundColor="@color/white">
+        android:layout_marginEnd="16dp"
+        android:queryHint="Search Location" />
 
-        <Button
-            android:id="@+id/mapButton"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="Map"
-            android:textColor="@android:color/black"
-            android:backgroundTint="@android:color/transparent"
-            android:padding="12dp"/>
-    </androidx.cardview.widget.CardView>
-
+    <!-- 🗺️ Centered Map -->
+    <ImageView
+        android:id="@+id/imageMap"
+        android:layout_width="match_parent"
+        android:layout_height="200dp"
+        android:layout_below="@id/searchView"
+        android:layout_marginTop="12dp"
+        android:layout_marginStart="16dp"
+        android:layout_marginEnd="16dp"
+        android:scaleType="centerCrop"
+        android:background="@drawable/border_rect" />
 
     <!-- ✅ Detection Bottom Border -->
     <LinearLayout
         android:id="@+id/bottomBorder"
         android:layout_width="match_parent"
-        android:layout_height="200dp"
-        android:layout_below="@id/topCenterButton"
-        android:layout_marginTop="70dp"
-        android:background="@drawable/border_rect"
+        android:layout_height="160dp"
+        android:layout_below="@id/imageMap"
+        android:layout_marginTop="5dp"
+        android:background="@drawable/border_rounded"
         android:orientation="vertical"
-        android:padding="16dp">
+        android:padding="10dp">
 
         <!-- Detection Rows -->
         <LinearLayout
