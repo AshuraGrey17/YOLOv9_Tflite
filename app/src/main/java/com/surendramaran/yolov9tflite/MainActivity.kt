@@ -181,6 +181,7 @@ class MainActivity : AppCompatActivity() {
         ContextCompat.checkSelfPermission(baseContext, it) == PackageManager.PERMISSION_GRANTED
     }
 
+
     private val requestPermissionLauncher = registerForActivityResult(ActivityResultContracts.RequestMultiplePermissions()) {
         if (it[Manifest.permission.CAMERA] == true) { startCamera() }
     }
@@ -380,6 +381,11 @@ class MainActivity : AppCompatActivity() {
 
         dialog.show()
     }
+    private fun enableAlertMode() {
+        detector?.setTargetClasses(listOf("Road-cracks", "Potholes", "Speed-bumps", "Manholes"))
+        toast("Alert mode enabled")
+    }
+
     private fun disableAlertMode() {
         detector?.setTargetClasses(emptyList())
         toast("Alert mode disabled")
@@ -601,9 +607,14 @@ class MainActivity : AppCompatActivity() {
     }
     fun Alertswitch(view: View) {
         val switch = view as Switch
-        val isChecked = switch.isChecked
-        Toast.makeText(this, if (isChecked) "Alerts Enabled" else "Alerts Disabled", Toast.LENGTH_SHORT).show()
+        if (switch.isChecked) {
+            enableAlertMode() // Method to enable alert mode
+        } else {
+            disableAlertMode() // Method to disable alert mode
+        }
+        Toast.makeText(this, if (switch.isChecked) "Alert Mode Enabled" else "Alert Mode Disabled", Toast.LENGTH_SHORT).show()
     }
+
 
     fun Notificationsswitch(view: View) {
         val switch = view as Switch
