@@ -301,8 +301,6 @@ class MainActivity : AppCompatActivity() {
         // Access the views from the inflated dialog layout
         val isGpuToggle: ToggleButton = dialog.findViewById(R.id.isGpu)
         val menuButton: FloatingActionButton? = dialog.findViewById(R.id.menuButton)
-        val mapButton: Button? = dialog.findViewById(R.id.mapButton) // Ensure this button is defined in your layout
-        val cancelButton: ImageView? = dialog.findViewById(R.id.cancelButton)
 
         // Set up the listener for the GPU toggle button
         isGpuToggle.setOnCheckedChangeListener { buttonView: CompoundButton, isChecked: Boolean ->
@@ -319,21 +317,8 @@ class MainActivity : AppCompatActivity() {
             showMenuBottomDialog()
         }
 
-        mapButton?.setOnClickListener {
-            dialog.dismiss()
-            showMapDialog() // Call the method to show the map dialog
-        }
-
-        cancelButton?.setOnClickListener { dialog.dismiss() }
     }
 
-    private fun showMapDialog() {
-        val dialog = createDialog(R.layout.bottomsheet_map) // Ensure this layout exists
-        dialog.show()
-
-        val cancelMapButton: ImageView? = dialog.findViewById(R.id.cancelButton)
-        cancelMapButton?.setOnClickListener { dialog.dismiss() }
-    }
 
     private fun showMenuBottomDialog() {
         val dialog = createDialog(R.layout.bottomsheet_menu)
