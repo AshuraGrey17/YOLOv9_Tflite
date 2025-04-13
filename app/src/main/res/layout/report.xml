@@ -46,7 +46,10 @@
             android:layout_height="wrap_content"
             android:text="Report"
             android:textSize="18sp"
-            android:textStyle="bold"/>
+            android:textStyle="bold"
+            android:textColor="#000000" />
+
+
     </LinearLayout>
 
     <!-- View Suggested Button -->

@@ -3,10 +3,12 @@ package com.surendramaran.yolov9tflite
 import android.Manifest
 import android.app.Dialog
 import android.content.pm.PackageManager
+import android.content.res.ColorStateList
 import android.graphics.Bitmap
 import android.graphics.Color
 import android.graphics.Matrix
 import android.graphics.drawable.ColorDrawable
+import android.net.Uri
 import android.os.Bundle
 import android.util.Log
 import android.view.Gravity
@@ -45,11 +47,13 @@ import android.os.VibrationEffect
 import android.os.Vibrator
 import android.os.VibratorManager
 import android.widget.Button
+import android.widget.CheckBox
 import android.widget.CompoundButton
 import android.widget.ToggleButton
 
 
 class MainActivity : AppCompatActivity() {
+
     private lateinit var binding: ActivityMainBinding
     private val isFrontCamera = false
 
@@ -59,6 +63,8 @@ class MainActivity : AppCompatActivity() {
     private var cameraProvider: ProcessCameraProvider? = null
     private var isNotificationEnabled = true // Default is ON
     private var detector: Detector? = null
+    private var reportImageView: ImageView? = null
+    private var profileImageView: ImageView? = null
 
     private lateinit var cameraExecutor: ExecutorService
 
@@ -112,7 +118,17 @@ class MainActivity : AppCompatActivity() {
         // Floating Action Button for showing bottom dialog
         binding.fab.setOnClickListener { showBottomDialog() }
     }
+    private val imagePickerLauncher = registerForActivityResult(
+        ActivityResultContracts.GetContent()
+    ) { uri: Uri? ->
+        uri?.let { reportImageView?.setImageURI(it) }
+    }
 
+    private val profileImagePickerLauncher = registerForActivityResult(
+        ActivityResultContracts.GetContent()
+    ) { uri: Uri? ->
+        uri?.let { profileImageView?.setImageURI(it) }
+    }
 
     private fun startCamera() {
         val cameraProviderFuture = ProcessCameraProvider.getInstance(baseContext)
@@ -299,18 +315,7 @@ class MainActivity : AppCompatActivity() {
         dialog.show()
 
         // Access the views from the inflated dialog layout
-        val isGpuToggle: ToggleButton = dialog.findViewById(R.id.isGpu)
         val menuButton: FloatingActionButton? = dialog.findViewById(R.id.menuButton)
-
-        // Set up the listener for the GPU toggle button
-        isGpuToggle.setOnCheckedChangeListener { buttonView: CompoundButton, isChecked: Boolean ->
-            cameraExecutor.submit {
-                detector?.restart(isGpu = isChecked)
-            }
-            buttonView.setBackgroundColor(
-                ContextCompat.getColor(baseContext, if (isChecked) R.color.orange else R.color.gray)
-            )
-        }
 
         menuButton?.setOnClickListener {
             dialog.dismiss()
@@ -322,6 +327,7 @@ class MainActivity : AppCompatActivity() {
 
     private fun showMenuBottomDialog() {
         val dialog = createDialog(R.layout.bottomsheet_menu)
+        val isGpuToggle: ToggleButton = dialog.findViewById(R.id.isGpu)
 
         val settingsLayout: LinearLayout? = dialog.findViewById(R.id.layoutSettings)
         val profileLayout: LinearLayout? = dialog.findViewById(R.id.layoutProfile)
@@ -342,18 +348,38 @@ class MainActivity : AppCompatActivity() {
             dialog.dismiss()
             showReportMenuDialog()
         }
+        // Set up the listener for the GPU toggle button
+        isGpuToggle.setOnCheckedChangeListener { buttonView: CompoundButton, isChecked: Boolean ->
+            cameraExecutor.submit {
+                detector?.restart(isGpu = isChecked)
+            }
 
+            // Change the background color of the ToggleButton based on the checked state
+            val backgroundColor = if (isChecked) {
+                ContextCompat.getColor(baseContext, R.color.green) // On color
+            } else {
+                ContextCompat.getColor(baseContext, R.color.white) // Off color
+            }
+
+            // Update the backgroundTint using the appropriate color
+            buttonView.backgroundTintList = ColorStateList.valueOf(backgroundColor)
+        }
         cancelMenuButton?.setOnClickListener { dialog.dismiss() }
 
         dialog.show()
     }
 
+
     private fun showSettingsMenuDialog() {
         val dialog = createDialog(R.layout.settings)
-
+        val backButton: ImageView? = dialog.findViewById(R.id.Backbutton)
         val alertModeLayout: LinearLayout? = dialog.findViewById(R.id.layoutAlertMode)
         val cancelMenuButton: ImageView? = dialog.findViewById(R.id.cancelMenuButton)
 
+        backButton?.setOnClickListener {
+            dialog.dismiss()
+            showBottomDialog() // Go back to main menu
+        }
         alertModeLayout?.setOnClickListener {
             dialog.dismiss()
             showAlertModeDialog()
@@ -366,8 +392,13 @@ class MainActivity : AppCompatActivity() {
 
     private fun showAlertModeDialog() {
         val dialog = createDialog(R.layout.settings_alertmode)
-
+        val backButton: ImageView? = dialog.findViewById(R.id.Backbutton)
         val cancelMenuButton: ImageView? = dialog.findViewById(R.id.cancelMenuButton)
+
+        backButton?.setOnClickListener {
+            dialog.dismiss()
+            showSettingsMenuDialog() // Go back to main menu
+        }
         cancelMenuButton?.setOnClickListener { dialog.dismiss() }
 
         dialog.show()
@@ -375,7 +406,7 @@ class MainActivity : AppCompatActivity() {
 
     private fun showProfileMenuDialog() {
         val dialog = createDialog(R.layout.profile)
-
+        val backButton: ImageView? = dialog.findViewById(R.id.Backbutton)
         val userDetailsLayout: LinearLayout? = dialog.findViewById(R.id.layoutuserdetails)
         val signOutLayout: LinearLayout? = dialog.findViewById(R.id.layoutsignout)
         val cancelMenuButton: ImageView? = dialog.findViewById(R.id.cancelMenuButton)
@@ -389,33 +420,161 @@ class MainActivity : AppCompatActivity() {
         cancelMenuButton?.setOnClickListener { dialog.dismiss() }
 
         dialog.show()
+        backButton?.setOnClickListener {
+            dialog.dismiss()
+            showBottomDialog()
+        }
     }
 
     private fun showUserDetailsDialog() {
         val dialog = createDialog(R.layout.profile_userdetails)
-
+        val backButton: ImageView? = dialog.findViewById(R.id.Backbutton)
         val cancelMenuButton: ImageView? = dialog.findViewById(R.id.cancelMenuButton)
+        val userPicture: ImageView? = dialog.findViewById(R.id.UserPicture)
+        // Click to change image
+        userPicture?.setOnClickListener {
+            profileImageView = it as ImageView
+            profileImagePickerLauncher.launch("image/*")
+        }
+
+        backButton?.setOnClickListener {
+            dialog.dismiss()
+            showProfileMenuDialog()
+        }
         cancelMenuButton?.setOnClickListener { dialog.dismiss() }
 
         dialog.show()
     }
 
     private fun showReportMenuDialog() {
-        val dialog = createDialog(R.layout.report)
+        val dialog = createDialog(R.layout.report_hazard)
 
-        val historyLayout: LinearLayout? = dialog.findViewById(R.id.historyLayout)
-        val cancelMenuButton: ImageView? = dialog.findViewById(R.id.cancelMenuButton)
+        // Top buttons
+        val backButton: ImageView = dialog.findViewById(R.id.Backbutton)
+        val cancelMenuButton: ImageView = dialog.findViewById(R.id.cancelMenuButton)
+        val topCenterButton: ImageView = dialog.findViewById(R.id.topCenterButton)
 
-        historyLayout?.setOnClickListener {
-            dialog.dismiss()
-            showSettingsMenuDialog()
+        // Info TextViews
+        val hazardTypeText: TextView = dialog.findViewById(R.id.typeofhazard)
+        val locationText: TextView = dialog.findViewById(R.id.location)
+        val timeText: TextView = dialog.findViewById(R.id.time)
+        val dateText: TextView = dialog.findViewById(R.id.date)
+
+        // Image preview
+        val reportImage: ImageView = dialog.findViewById(R.id.reportImage)
+        reportImageView = reportImage // store reference for result callback
+
+        reportImage.setOnClickListener {
+            imagePickerLauncher.launch("image/*")
         }
 
-        cancelMenuButton?.setOnClickListener { dialog.dismiss() }
+        // CheckBoxes
+        val roadCrackCheckBox: CheckBox = dialog.findViewById(R.id.RoadcrackcheckBox)
+        val roadPotholeCheckBox: CheckBox = dialog.findViewById(R.id.RoadpotholeCheckbox)
+        val speedBumpCheckBox: CheckBox = dialog.findViewById(R.id.SpeedbumpCheckbox)
+        val roadManholeCheckBox: CheckBox = dialog.findViewById(R.id.RoadmanholeCheckbox)
+        val unfinishedPavementCheckBox: CheckBox = dialog.findViewById(R.id.UnfinishedpavementCheckbox)
+
+        // Set listeners
+        backButton.setOnClickListener {
+            dialog.dismiss()
+            showBottomDialog()
+        }
+
+        cancelMenuButton.setOnClickListener {
+            dialog.dismiss()
+        }
+
+        val reportButton: Button = dialog.findViewById(R.id.Reportbutton)
+        reportButton.setOnClickListener {
+            dialog.dismiss()
+            showReportVerificationDialog()
+        }
 
         dialog.show()
     }
 
+    private fun showReportVerificationDialog() {
+        val dialog = createDialog(R.layout.report_verification)
+
+        // Top Buttons
+        val backButton: ImageView = dialog.findViewById(R.id.Backbutton)
+        val cancelMenuButton: ImageView = dialog.findViewById(R.id.cancelMenuButton)
+        val topCenterButton: ImageView = dialog.findViewById(R.id.topCenterButton)
+
+        // Info Fields
+        val roadTypeText: TextView = dialog.findViewById(R.id.Roadtype)
+        val locationText: TextView = dialog.findViewById(R.id.location)
+        val timeText: TextView = dialog.findViewById(R.id.time)
+        val dateText: TextView = dialog.findViewById(R.id.date)
+
+        // Image Preview
+        val reportImage: ImageView = dialog.findViewById(R.id.reportImage)
+
+        // Action Buttons
+        val checkButton: Button = dialog.findViewById(R.id.checkButton)
+        val denyButton: Button = dialog.findViewById(R.id.denyButton)
+
+        // Set button actions
+        backButton.setOnClickListener {
+            dialog.dismiss()
+            showReportMenuDialog()
+        }
+
+        cancelMenuButton.setOnClickListener {
+            dialog.dismiss()
+        }
+
+        topCenterButton.setOnClickListener {
+            dialog.dismiss()
+        }
+
+        checkButton.setOnClickListener {
+            Toast.makeText(dialog.context, "Report Approved", Toast.LENGTH_SHORT).show()
+            dialog.dismiss()
+            showReportHistoryDialog()
+        }
+
+
+        denyButton.setOnClickListener {
+            Toast.makeText(dialog.context, "Report Denied", Toast.LENGTH_SHORT).show()
+            dialog.dismiss()
+            showReportMenuDialog()
+        }
+
+        dialog.show()
+    }
+
+    private fun showReportHistoryDialog() {
+        val dialog = createDialog(R.layout.report_history)
+
+        // Top buttons
+        val backButton: ImageView = dialog.findViewById(R.id.Backbutton)
+        val cancelMenuButton: ImageView = dialog.findViewById(R.id.cancelMenuButton)
+        val topCenterButton: ImageView = dialog.findViewById(R.id.topCenterButton)
+
+        val viewSuggestedButton: Button = dialog.findViewById(R.id.viewSuggestedButton)
+
+        backButton.setOnClickListener {
+            dialog.dismiss()
+            showReportVerificationDialog() // go back to verification screen if needed
+        }
+
+        cancelMenuButton.setOnClickListener {
+            dialog.dismiss()
+        }
+
+        topCenterButton.setOnClickListener {
+            dialog.dismiss()
+        }
+
+        viewSuggestedButton.setOnClickListener {
+            Toast.makeText(dialog.context, "Viewing Suggested Reports", Toast.LENGTH_SHORT).show()
+            // add logic here if needed
+        }
+
+        dialog.show()
+    }
     fun Alertswitch(view: View) {
         val switch = view as Switch
         val isChecked = switch.isChecked

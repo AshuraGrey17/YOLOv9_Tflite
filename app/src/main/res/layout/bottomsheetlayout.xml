@@ -46,18 +46,7 @@
         android:layout_marginTop="16dp"
         app:cardElevation="6dp"
         app:cardCornerRadius="12dp"
-        app:cardBackgroundColor="@color/white">
-
-        <ToggleButton
-            android:id="@+id/isGpu"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:textColor="@android:color/black"
-            android:textOff="@string/gpu"
-            android:textOn="@string/gpu"
-            android:checked="true"
-            android:backgroundTint="@android:color/transparent"/>
-    </androidx.cardview.widget.CardView>
+        app:cardBackgroundColor="@color/white"/>
 
 
 
@@ -89,9 +78,9 @@
     <LinearLayout
         android:id="@+id/bottomBorder"
         android:layout_width="match_parent"
-        android:layout_height="160dp"
+        android:layout_height="80dp"
         android:layout_below="@id/imageMap"
-        android:layout_marginTop="5dp"
+        android:layout_marginTop="20dp"
         android:background="@drawable/border_rounded"
         android:orientation="vertical"
         android:padding="10dp">
@@ -109,7 +98,7 @@
                 android:text="Detecting:"
                 android:textColor="@color/black"
                 android:layout_marginLeft="16dp"
-                android:textSize="16sp"
+                android:textSize="30sp"
                 android:layout_weight="1" />
         </LinearLayout>
 
@@ -118,32 +107,14 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="horizontal"
-            android:padding="10dp">
-            <TextView
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:text="Detecting:"
-                android:textColor="@color/black"
-                android:layout_marginLeft="16dp"
-                android:textSize="16sp"
-                android:layout_weight="1" />
-        </LinearLayout>
+            android:padding="10dp"/>
 
         <LinearLayout
             android:id="@+id/detection3"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="horizontal"
-            android:padding="10dp">
-            <TextView
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:text="Detecting:"
-                android:textColor="@color/black"
-                android:layout_marginLeft="16dp"
-                android:textSize="16sp"
-                android:layout_weight="1" />
-        </LinearLayout>
+            android:padding="10dp"/>
     </LinearLayout>
 
 </RelativeLayout>
