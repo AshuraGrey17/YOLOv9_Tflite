@@ -28,13 +28,6 @@
         android:scaleType="centerCrop" />
 
     <!-- ✅ Cancel (X) Button -->
-    <ImageView
-        android:id="@+id/cancelMenuButton"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_alignParentEnd="true"
-        android:layout_margin="16dp"
-        android:src="@drawable/ic_baseline_clear_24" />
 
     <!-- GPU Toggle wrapped in CardView -->
     <androidx.cardview.widget.CardView
@@ -55,7 +48,7 @@
         android:id="@+id/searchView"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:background="@drawable/border_rounded"
+        android:background="@drawable/border_rounded2"
         android:layout_below="@id/gpuCard"
         android:layout_marginTop="12dp"
         android:layout_marginStart="16dp"
@@ -81,7 +74,7 @@
         android:layout_height="80dp"
         android:layout_below="@id/imageMap"
         android:layout_marginTop="20dp"
-        android:background="@drawable/border_rounded"
+        android:background="@drawable/border_rounded2"
         android:orientation="vertical"
         android:padding="10dp">
 
