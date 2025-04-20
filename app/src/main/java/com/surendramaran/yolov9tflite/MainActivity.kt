@@ -50,6 +50,12 @@ import android.widget.Button
 import android.widget.CheckBox
 import android.widget.CompoundButton
 import android.widget.ToggleButton
+import androidx.appcompat.app.AppCompatDelegate
+import android.content.Context
+import com.google.android.material.bottomsheet.BottomSheetDialog
+import org.osmdroid.config.Configuration
+import org.osmdroid.views.MapView
+
 
 
 class MainActivity : AppCompatActivity() {
@@ -81,10 +87,29 @@ class MainActivity : AppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        binding = ActivityMainBinding.inflate(layoutInflater)
+        Configuration.getInstance().load(applicationContext, getSharedPreferences("osm_prefs", Context.MODE_PRIVATE))
 
+
+
+        binding = ActivityMainBinding.inflate(layoutInflater)
         enableEdgeToEdge()
         setContentView(binding.root)
+
+        // Setup the map dialog
+        val dialog = BottomSheetDialog(this)
+        val view = layoutInflater.inflate(R.layout.bottomsheetlayout, null)
+        dialog.setContentView(view)
+
+        // Initialize the MapView
+        val mapView = view.findViewById<MapView>(R.id.map)
+        MapManager.setupMap(this, mapView, 14.5995, 120.9842)
+
+        // 🟢 Use the existing FAB to trigger showing the map dialog
+        val fab = findViewById<FloatingActionButton>(R.id.fab)
+        fab.setOnClickListener {
+            dialog.show()
+        }
+
         ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main)) { v, insets ->
             val systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars())
             v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom)
@@ -105,7 +130,6 @@ class MainActivity : AppCompatActivity() {
             ActivityCompat.requestPermissions(this, REQUIRED_PERMISSIONS, REQUEST_CODE_PERMISSIONS)
         }
 
-
         // Initialize notification components
         notificationBanner = findViewById(R.id.detectionNotificationCard)
         notificationText = findViewById(R.id.detectionNotificationText)
@@ -117,7 +141,10 @@ class MainActivity : AppCompatActivity() {
 
         // Floating Action Button for showing bottom dialog
         binding.fab.setOnClickListener { showBottomDialog() }
+
+
     }
+
     private val imagePickerLauncher = registerForActivityResult(
         ActivityResultContracts.GetContent()
     ) { uri: Uri? ->
