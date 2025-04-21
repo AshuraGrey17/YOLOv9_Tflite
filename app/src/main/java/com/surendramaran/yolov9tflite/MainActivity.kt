@@ -32,8 +32,6 @@ import androidx.camera.lifecycle.ProcessCameraProvider
 import androidx.cardview.widget.CardView
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
-import androidx.core.view.ViewCompat
-import androidx.core.view.WindowInsetsCompat
 import androidx.lifecycle.lifecycleScope
 import com.google.android.material.floatingactionbutton.FloatingActionButton
 import com.surendramaran.yolov9tflite.Constants.LABELS_PATH
@@ -50,19 +48,20 @@ import android.widget.Button
 import android.widget.CheckBox
 import android.widget.CompoundButton
 import android.widget.ToggleButton
-import androidx.appcompat.app.AppCompatDelegate
 import android.content.Context
 import com.google.android.material.bottomsheet.BottomSheetDialog
 import org.osmdroid.config.Configuration
+import org.osmdroid.util.GeoPoint
 import org.osmdroid.views.MapView
+import com.google.android.gms.location.FusedLocationProviderClient
+import com.google.android.gms.location.LocationServices
+import android.location.Location
 
 
 
 class MainActivity : AppCompatActivity() {
-
     private lateinit var binding: ActivityMainBinding
     private val isFrontCamera = false
-
     private var preview: Preview? = null
     private var imageAnalyzer: ImageAnalysis? = null
     private var camera: Camera? = null
@@ -71,50 +70,47 @@ class MainActivity : AppCompatActivity() {
     private var detector: Detector? = null
     private var reportImageView: ImageView? = null
     private var profileImageView: ImageView? = null
-
     private lateinit var cameraExecutor: ExecutorService
-
+    private lateinit var fusedLocationClient: FusedLocationProviderClient
     // CardView and TextView for heads-up notification
     private lateinit var notificationBanner: CardView
     private lateinit var notificationText: TextView
-
     // Enum class for severity levels
     enum class Severity(val color: Int) {
         LOW(R.color.yellow),
         MEDIUM(R.color.orange),
         HIGH(R.color.red)
     }
-
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         Configuration.getInstance().load(applicationContext, getSharedPreferences("osm_prefs", Context.MODE_PRIVATE))
-
-
-
+        Configuration.getInstance().userAgentValue = packageName
+        ActivityCompat.requestPermissions(this, arrayOf(Manifest.permission.ACCESS_FINE_LOCATION), 1)
         binding = ActivityMainBinding.inflate(layoutInflater)
         enableEdgeToEdge()
         setContentView(binding.root)
 
-        // Setup the map dialog
-        val dialog = BottomSheetDialog(this)
-        val view = layoutInflater.inflate(R.layout.bottomsheetlayout, null)
-        dialog.setContentView(view)
-
-        // Initialize the MapView
-        val mapView = view.findViewById<MapView>(R.id.map)
-        MapManager.setupMap(this, mapView, 14.5995, 120.9842)
-
-        // 🟢 Use the existing FAB to trigger showing the map dialog
         val fab = findViewById<FloatingActionButton>(R.id.fab)
         fab.setOnClickListener {
+            val dialog = BottomSheetDialog(this)
+            val view = layoutInflater.inflate(R.layout.bottomsheetlayout, null)
+            dialog.setContentView(view)
+
+            val mapView = view.findViewById<MapView>(R.id.map)
+
+            dialog.setOnShowListener {
+                mapView.postDelayed({
+                    val point = GeoPoint(14.5995, 120.9842)
+                    mapView.controller.setZoom(16.0)
+                    mapView.controller.setCenter(point)
+                    Log.d("MapFix", "🌏 Forced center to Manila: $point")
+                }, 500)
+            }
+
             dialog.show()
         }
 
-        ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main)) { v, insets ->
-            val systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars())
-            v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom)
-            insets
-        }
+
 
         cameraExecutor = Executors.newSingleThreadExecutor()
 
