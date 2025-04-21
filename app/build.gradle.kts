@@ -51,7 +51,7 @@ dependencies {
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
-
+    implementation ("org.osmdroid:osmdroid-android:6.1.16")
 
     val cameraxVersion = "1.4.0-beta02"
     implementation("androidx.camera:camera-camera2:${cameraxVersion}")
