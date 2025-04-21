@@ -88,7 +88,7 @@ class MainActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         binding = ActivityMainBinding.inflate(layoutInflater)
         sharedPreferences = getSharedPreferences(PREFERENCES_NAME, MODE_PRIVATE)
-        
+
         enableEdgeToEdge()
         setContentView(binding.root)
         ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main)) { v, insets ->
@@ -231,7 +231,7 @@ class MainActivity : AppCompatActivity() {
         }
     }
     private var lastDetectionTime = 0L
-    private val detectionInterval = 2000 // Adjust time in milliseconds (e.g., 2000ms = 2 seconds)
+    private val detectionInterval = 2000 // From 1500ms to 500ms
 
     fun onDetect(boundingBoxes: List<BoundingBox>, inferenceTime: Long) {
         val currentTime = System.currentTimeMillis()
@@ -374,6 +374,7 @@ class MainActivity : AppCompatActivity() {
 
         dialog.show()
     }
+
     private fun loadSwitchStates(
         alertSwitch: Switch,
         notificationSwitch: Switch,
