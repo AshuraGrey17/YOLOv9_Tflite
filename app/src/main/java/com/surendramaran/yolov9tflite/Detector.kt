@@ -1,3 +1,4 @@
+// ✅ Updated Detector.kt with Alert Mode filtering support
 package com.surendramaran.yolov9tflite
 
 import android.content.Context
@@ -18,11 +19,12 @@ class Detector(
     private val context: Context,
     private val modelPath: String,
     private val labelPath: String?,
-    private val detectorListener: MainActivity,  // ✅ Corrected type
+    private val detectorListener: MainActivity,
     private val message: (String) -> Unit
 ) {
     private var interpreter: Interpreter
     private var labels = mutableListOf<String>()
+    private var targetClasses: List<String> = emptyList()
 
     private var tensorWidth = 0
     private var tensorHeight = 0
@@ -76,6 +78,14 @@ class Detector(
         }
     }
 
+    fun setTargetClasses(classes: List<String>) {
+        targetClasses = classes
+    }
+
+    fun getTargetClasses(): List<String> {
+        return targetClasses
+    }
+
     fun restart(isGpu: Boolean) {
         interpreter.close()
         val options = Interpreter.Options().apply {
@@ -113,15 +123,15 @@ class Detector(
         inferenceTime = SystemClock.uptimeMillis() - inferenceTime
 
         if (bestBoxes.isNullOrEmpty()) {
-            detectorListener.onEmptyDetect() // ✅ Fixed unresolved reference
+            detectorListener.onEmptyDetect()
         } else {
-            detectorListener.onDetect(bestBoxes, inferenceTime) // ✅ Fixed unresolved reference
+            detectorListener.onDetect(bestBoxes, inferenceTime)
         }
     }
 
     private fun bestBox(array: FloatArray) : List<BoundingBox>? {
         val boundingBoxes = mutableListOf<BoundingBox>()
-        val MAX_BOXES = 1  // Change this to limit bounding boxes
+        val MAX_BOXES = 1
 
         for (c in 0 until numElements) {
             var maxConf = CONFIDENCE_THRESHOLD
@@ -139,6 +149,8 @@ class Detector(
 
             if (maxConf > CONFIDENCE_THRESHOLD) {
                 val clsName = labels[maxIdx]
+                if (targetClasses.isNotEmpty() && clsName !in targetClasses) continue
+
                 val cx = array[c]
                 val cy = array[c + numElements]
                 val w = array[c + numElements * 2]
@@ -164,7 +176,6 @@ class Detector(
 
         if (boundingBoxes.isEmpty()) return null
 
-        // Sort by confidence and return only the top MAX_BOXES results
         return applyNMS(boundingBoxes).sortedByDescending { it.cnf }.take(MAX_BOXES)
     }
 

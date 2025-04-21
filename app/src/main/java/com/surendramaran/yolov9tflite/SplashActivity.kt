@@ -4,39 +4,77 @@ import android.content.Intent
 import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
+import android.widget.ImageView
 import android.widget.ProgressBar
+import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
 
 class SplashActivity : AppCompatActivity() {
     private lateinit var progressBar: ProgressBar
+    private lateinit var loadingText: TextView
+    private lateinit var tagline: TextView
     private val handler = Handler(Looper.getMainLooper())
-    private var progressStatus = 0
+
+    private var progress = 0
+    private val tips = listOf(
+        "Analyzing objects...",
+        "Preparing the Application...",
+        "Calibrating sensors...",
+        "Verifying road safety..."
+    )
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.splash_screen)
 
-        // Find ProgressBar
+        // View bindings
         progressBar = findViewById(R.id.progressBar)
-        progressBar.max = 100  // Set max progress to 100
+        loadingText = findViewById(R.id.loadingText)
+        tagline = findViewById(R.id.tagline)
+        val appLogo = findViewById<ImageView>(R.id.appLogo)
 
-        // Start Progress Animation
-        simulateProgressBar()
+        progressBar.max = 100
+
+        // Animate logo
+        appLogo.scaleX = 0.8f
+        appLogo.scaleY = 0.8f
+        appLogo.animate()
+            .scaleX(1.2f)
+            .scaleY(1.2f)
+            .alpha(1f)
+            .setDuration(1000)
+            .start()
+
+        // Animate tagline and loading text
+        tagline.animate().alpha(1f).setStartDelay(500).setDuration(800).start()
+        loadingText.animate().alpha(1f).setStartDelay(1000).setDuration(800).start()
+
+        // Start animations
+        showTips()
+        startSmoothProgress()
     }
 
-    private fun simulateProgressBar() {
-        Thread {
-            while (progressStatus < 100) {
-                progressStatus += 5  // Increase progress
-                handler.post {
-                    progressBar.progress = progressStatus
+    private fun startSmoothProgress() {
+        handler.post(object : Runnable {
+            override fun run() {
+                if (progress < 100) {
+                    progress++
+                    progressBar.progress = progress
+                    handler.postDelayed(this, 60) // Smooth interval (~6s total)
+                } else {
+                    // Finish and go to MainActivity
+                    startActivity(Intent(this@SplashActivity, MainActivity::class.java))
+                    finish()
                 }
-                Thread.sleep(100)  // Delay for smooth animation
             }
+        })
+    }
 
-            // Navigate to MainActivity after loading
-            startActivity(Intent(this, MainActivity::class.java))
-            finish()
-        }.start()
+    private fun showTips() {
+        for (i in tips.indices) {
+            handler.postDelayed({
+                loadingText.text = tips[i]
+            }, (i * 1500).toLong())
+        }
     }
 }

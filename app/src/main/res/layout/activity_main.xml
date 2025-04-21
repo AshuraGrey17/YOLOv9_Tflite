@@ -83,7 +83,7 @@
     <LinearLayout
         android:id="@+id/bottomBorder"
         android:layout_width="0dp"
-        android:layout_height="200dp"
+        android:layout_height="150dp"
         android:background="@drawable/dialogbg"
         android:orientation="vertical"
         android:paddingTop="32dp"
@@ -134,25 +134,19 @@
                 android:textColor="@color/black"
                 android:text="100000ms" />
         </LinearLayout>
-    <LinearLayout
-        android:id="@+id/Detectionborder"
-        android:layout_width="match_parent"
-        android:layout_height="70dp"
-        android:layout_below="@id/fab"
-        android:background="@drawable/border_rounded"
-        android:orientation="vertical"
-        android:padding="5dp">
+
+
         <!-- Detection TextViews -->
         <TextView
             android:id="@+id/detection1"
             android:layout_width="match_parent"
-            android:padding="10dp"
-            android:layout_height="50dp"
+            android:padding="0dp"
+            android:layout_height="40dp"
             android:text="Detecting"
             android:textColor="@color/black"
-            android:textSize="20sp" />
+            android:textSize="18sp" />
 
-    </LinearLayout>
+
     </LinearLayout>
     <!-- FAB without the circular shape, only the drawable inside -->
 

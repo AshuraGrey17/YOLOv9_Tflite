@@ -5,9 +5,17 @@
 
     <!-- Custom Switch Style -->
     <style name="CustomSwitchStyle">
-        <!-- Green color when switch is on -->
         <item name="colorControlActivated">@color/green</item>
-        <!-- Red color when switch is off -->
         <item name="colorControlNormal">@color/red</item>
+    </style>
+
+    <!-- Light Theme -->
+    <style name="LightTheme" parent="Theme.AppCompat.Light">
+        <!-- Customize your light theme here -->
+    </style>
+
+    <!-- Dark Theme -->
+    <style name="DarkTheme" parent="Theme.AppCompat.NoActionBar">
+        <!-- Customize your dark theme here -->
     </style>
 </resources>

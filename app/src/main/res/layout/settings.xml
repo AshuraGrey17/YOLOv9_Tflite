@@ -85,6 +85,7 @@
             android:layout_weight="1" />
 
         <Switch
+            android:id="@+id/alertSwitch"
             android:theme="@style/CustomSwitchStyle"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
@@ -153,6 +154,7 @@
             android:layout_weight="1" />
 
         <Switch
+            android:id="@+id/notificationSwitch"
             android:theme="@style/CustomSwitchStyle"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
@@ -185,6 +187,7 @@
             android:layout_weight="1" />
 
         <Switch
+            android:id="@+id/nightModeSwitch"
             android:theme="@style/CustomSwitchStyle"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
