@@ -9,6 +9,7 @@ import android.graphics.Bitmap
 import android.graphics.Color
 import android.graphics.Matrix
 import android.graphics.drawable.ColorDrawable
+import android.media.MediaPlayer
 import android.net.Uri
 import android.os.Bundle
 import android.util.Log
@@ -69,6 +70,7 @@ class MainActivity : AppCompatActivity() {
     private var detector: Detector? = null
     private var reportImageView: ImageView? = null
     private var profileImageView: ImageView? = null
+    private var mediaPlayer: MediaPlayer? = null
 
     private lateinit var cameraExecutor: ExecutorService
     private lateinit var sharedPreferences: SharedPreferences
@@ -324,6 +326,14 @@ class MainActivity : AppCompatActivity() {
         notificationText.text = detection
         notificationBanner.visibility = View.VISIBLE
         notificationBanner.animate().translationY(0f).setDuration(300).start()
+
+        playNotificationSound() // 🔊 Add this line to play the sound
+    }
+
+    private fun playNotificationSound() {
+        mediaPlayer?.release()
+        mediaPlayer = MediaPlayer.create(this, R.raw.notification_sound)
+        mediaPlayer?.start()
     }
 
     private fun hideNotification() {
