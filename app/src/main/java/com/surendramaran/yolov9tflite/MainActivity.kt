@@ -50,6 +50,9 @@ import android.widget.Button
 import android.widget.CheckBox
 import android.widget.CompoundButton
 import android.widget.ToggleButton
+import com.google.android.material.bottomsheet.BottomSheetDialog
+import org.osmdroid.util.GeoPoint
+import org.osmdroid.views.MapView
 
 
 class MainActivity : AppCompatActivity() {
@@ -90,7 +93,25 @@ class MainActivity : AppCompatActivity() {
             v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom)
             insets
         }
+        val fab = findViewById<FloatingActionButton>(R.id.fab)
+        fab.setOnClickListener {
+            val dialog = BottomSheetDialog(this)
+            val view = layoutInflater.inflate(R.layout.bottomsheetlayout, null)
+            dialog.setContentView(view)
 
+            val mapView = view.findViewById<MapView>(R.id.map)
+
+            dialog.setOnShowListener {
+                mapView.postDelayed({
+                    val point = GeoPoint(14.5995, 120.9842)
+                    mapView.controller.setZoom(16.0)
+                    mapView.controller.setCenter(point)
+                    Log.d("MapFix", "🌏 Forced center to Manila: $point")
+                }, 500)
+            }
+
+            dialog.show()
+        }
         cameraExecutor = Executors.newSingleThreadExecutor()
 
         cameraExecutor.execute {
@@ -313,7 +334,8 @@ class MainActivity : AppCompatActivity() {
     private fun showBottomDialog() {
         val dialog = createDialog(R.layout.bottomsheetlayout)
         dialog.show()
-
+        val mapView = dialog.findViewById<MapView>(R.id.map)
+        MapManager.setupMap(this, mapView, 14.5995, 120.9842) // Use your desired lat/lon
         // Access the views from the inflated dialog layout
         val menuButton: FloatingActionButton? = dialog.findViewById(R.id.menuButton)
 
