@@ -55,6 +55,7 @@ import org.osmdroid.util.GeoPoint
 import org.osmdroid.views.MapView
 
 
+
 class MainActivity : AppCompatActivity() {
 
     private lateinit var binding: ActivityMainBinding
@@ -69,11 +70,23 @@ class MainActivity : AppCompatActivity() {
     private var reportImageView: ImageView? = null
     private var profileImageView: ImageView? = null
 
+
+
     private lateinit var cameraExecutor: ExecutorService
 
     // CardView and TextView for heads-up notification
     private lateinit var notificationBanner: CardView
     private lateinit var notificationText: TextView
+    private val locationPermissionLauncher =
+        registerForActivityResult(ActivityResultContracts.RequestPermission()) { isGranted ->
+            if (isGranted) {
+                Toast.makeText(this, "Location permission granted!", Toast.LENGTH_SHORT).show()
+
+            } else {
+                Toast.makeText(this, "Location permission denied.", Toast.LENGTH_SHORT).show()
+            }
+        }
+
 
     // Enum class for severity levels
     enum class Severity(val color: Int) {
@@ -93,8 +106,7 @@ class MainActivity : AppCompatActivity() {
             v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom)
             insets
         }
-        val fab = findViewById<FloatingActionButton>(R.id.fab)
-        fab.setOnClickListener {
+        binding.fab.setOnClickListener {
             val dialog = BottomSheetDialog(this)
             val view = layoutInflater.inflate(R.layout.bottomsheetlayout, null)
             dialog.setContentView(view)
@@ -103,21 +115,33 @@ class MainActivity : AppCompatActivity() {
 
             dialog.setOnShowListener {
                 mapView.postDelayed({
-                    val point = GeoPoint(14.5995, 120.9842)
-                    mapView.controller.setZoom(16.0)
-                    mapView.controller.setCenter(point)
-                    Log.d("MapFix", "🌏 Forced center to Manila: $point")
+                    if (ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION)
+                        == PackageManager.PERMISSION_GRANTED) {
+                        MapManager.setupMap(this, mapView, 14.5995, 120.9842)
+                    } else {
+                        Toast.makeText(this, "Location permission not granted.", Toast.LENGTH_SHORT).show()
+                    }
                 }, 500)
             }
 
             dialog.show()
         }
+
         cameraExecutor = Executors.newSingleThreadExecutor()
 
         cameraExecutor.execute {
             detector = Detector(baseContext, MODEL_PATH, LABELS_PATH, this) {
                 toast(it)
             }
+        }
+
+        if (ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION)
+            != PackageManager.PERMISSION_GRANTED) {
+            ActivityCompat.requestPermissions(
+                this,
+                arrayOf(Manifest.permission.ACCESS_FINE_LOCATION),
+                1
+            )
         }
 
         if (allPermissionsGranted()) {
