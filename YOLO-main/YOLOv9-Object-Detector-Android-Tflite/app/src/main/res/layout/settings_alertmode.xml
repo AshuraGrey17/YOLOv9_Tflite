@@ -1,0 +1,216 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:padding="16dp"
+    android:background="@android:color/white">
+
+
+    <ImageView
+        android:id="@+id/cancelButton"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:src="@drawable/ic_baseline_clear_24"
+        android:layout_gravity="right"
+        android:layout_margin="16dp" />
+
+    <!-- Menu Title -->
+    <TextView
+        android:id="@+id/menuTitle"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Detect Mode"
+        android:textSize="18sp"
+        android:textStyle="bold"
+        android:paddingBottom="10dp" />
+
+    <!-- Road Cracks -->
+    <LinearLayout
+        android:id="@+id/layoutRoadcracks"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:padding="10dp">
+
+        <ImageView
+            android:layout_width="40dp"
+            android:layout_height="40dp"
+            android:scaleType="fitCenter"
+            android:src="@drawable/roadcracks" />
+
+        <TextView
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:text="Road Cracks"
+            android:textColor="@color/lavender"
+            android:layout_marginLeft="16dp"
+            android:textSize="16sp"
+            android:layout_weight="1" />
+
+        <CheckBox
+            android:id="@+id/RoadcrackCheckbox"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content" />
+    </LinearLayout>
+
+    <!-- Road Potholes -->
+    <LinearLayout
+        android:id="@+id/layoutRoadpotholes"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:padding="10dp">
+
+        <ImageView
+            android:layout_width="40dp"
+            android:layout_height="40dp"
+            android:scaleType="fitCenter"
+            android:src="@drawable/roadpotholes" />
+
+        <TextView
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginLeft="16dp"
+            android:text="Road Potholes"
+            android:textColor="@color/lavender"
+            android:textSize="16sp"
+            android:layout_weight="1" />
+
+        <CheckBox
+            android:id="@+id/RoadpotholeCheckbox"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content" />
+    </LinearLayout>
+
+    <!-- Speed Bump -->
+    <LinearLayout
+        android:id="@+id/layoutRoadspeedbump"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:padding="10dp">
+
+        <ImageView
+            android:layout_width="40dp"
+            android:layout_height="40dp"
+            android:scaleType="fitCenter"
+            android:src="@drawable/speed" />
+
+        <TextView
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginLeft="16dp"
+            android:text="Speed Bump"
+            android:textColor="@color/lavender"
+            android:textSize="16sp"
+            android:layout_weight="1" />
+
+        <CheckBox
+            android:id="@+id/SpeedbumpCheckbox"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content" />
+    </LinearLayout>
+
+    <!-- Road Manhole -->
+    <LinearLayout
+        android:id="@+id/layoutRoadmanhole"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:padding="10dp">
+
+        <ImageView
+            android:layout_width="40dp"
+            android:layout_height="40dp"
+            android:scaleType="fitCenter"
+            android:src="@drawable/manhole" />
+
+        <TextView
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:text="Road Manhole"
+            android:textColor="@color/lavender"
+            android:layout_marginLeft="16dp"
+            android:textSize="16sp"
+            android:layout_weight="1" />
+
+        <CheckBox
+            android:id="@+id/RoadmanholeCheckbox"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content" />
+    </LinearLayout>
+
+    <!-- Unfinished Pavements -->
+    <LinearLayout
+        android:id="@+id/layoutunfinishedpavements"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:padding="10dp">
+
+        <ImageView
+            android:layout_width="40dp"
+            android:layout_height="40dp"
+            android:scaleType="fitCenter"
+            android:src="@drawable/unfinishedpavements" />
+
+        <TextView
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:text="Unfinished Pavements"
+            android:textColor="@color/lavender"
+            android:layout_marginLeft="16dp"
+            android:textSize="16sp"
+            android:layout_weight="1" />
+
+        <CheckBox
+            android:id="@+id/UnfinishedpavementCheckbox"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content" />
+    </LinearLayout>
+
+    <!-- Puddles -->
+    <LinearLayout
+        android:id="@+id/layoutRoadpuddles"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:padding="10dp">
+
+        <ImageView
+            android:layout_width="40dp"
+            android:layout_height="40dp"
+            android:scaleType="fitCenter"
+            android:src="@drawable/puddles" />
+
+        <TextView
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:text="Puddles"
+            android:textColor="@color/lavender"
+            android:layout_marginLeft="16dp"
+            android:textSize="16sp"
+            android:layout_weight="1" />
+
+        <CheckBox
+            android:id="@+id/puddlesCheckbox"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content" />
+    </LinearLayout>
+
+    <!-- Detect Button -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:gravity="center"
+        android:padding="10dp">
+
+        <Button
+            android:id="@+id/detectButton"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Detect" />
+    </LinearLayout>
+
+</LinearLayout>

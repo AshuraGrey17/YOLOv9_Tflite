@@ -33,13 +33,6 @@
             app:layout_constraintStart_toStartOf="parent"
             android:layout_margin="16dp" />
         <!-- Cancel (X) Button on Right -->
-        <ImageView
-            android:id="@+id/cancelMenuButton"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_alignParentEnd="true"
-            android:src="@drawable/ic_baseline_clear_24"
-            android:layout_marginEnd="8dp"/>
     </RelativeLayout>
 
     <!-- Title -->
