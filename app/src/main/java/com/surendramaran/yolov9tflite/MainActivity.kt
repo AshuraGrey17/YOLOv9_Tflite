@@ -54,7 +54,9 @@ import android.widget.ToggleButton
 import com.google.android.material.bottomsheet.BottomSheetDialog
 import org.osmdroid.util.GeoPoint
 import org.osmdroid.views.MapView
-
+import com.google.android.gms.location.FusedLocationProviderClient
+import com.google.android.gms.location.LocationServices
+import android.location.Location
 
 
 class MainActivity : AppCompatActivity() {
@@ -72,6 +74,9 @@ class MainActivity : AppCompatActivity() {
     private var profileImageView: ImageView? = null
 
 
+    private lateinit var fusedLocationClient: FusedLocationProviderClient
+    private val LAT_KEY = "Latitude"
+    private val LON_KEY = "Longitude"
 
     private lateinit var cameraExecutor: ExecutorService
     private lateinit var sharedPreferences: SharedPreferences
@@ -105,6 +110,21 @@ class MainActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         binding = ActivityMainBinding.inflate(layoutInflater)
         sharedPreferences = getSharedPreferences(PREFERENCES_NAME, MODE_PRIVATE)
+        fusedLocationClient = LocationServices.getFusedLocationProviderClient(this)
+
+        if (ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION)
+            == PackageManager.PERMISSION_GRANTED) {
+
+            fusedLocationClient.lastLocation.addOnSuccessListener { location: Location? ->
+                location?.let {
+                    // Save exact location
+                    sharedPreferences.edit()
+                        .putFloat(LAT_KEY, it.latitude.toFloat())
+                        .putFloat(LON_KEY, it.longitude.toFloat())
+                        .apply()
+                }
+            }
+        }
 
         enableEdgeToEdge()
         setContentView(binding.root)
@@ -366,7 +386,9 @@ class MainActivity : AppCompatActivity() {
         val dialog = createDialog(R.layout.bottomsheetlayout)
         dialog.show()
         val mapView = dialog.findViewById<MapView>(R.id.map)
-        MapManager.setupMap(this, mapView, 14.5995, 120.9842) // Use your desired lat/lon
+        val lat = sharedPreferences.getFloat(LAT_KEY, 14.5995f) // Default to Manila if not set
+        val lon = sharedPreferences.getFloat(LON_KEY, 120.9842f)
+        MapManager.setupMap(this, mapView, lat.toDouble(), lon.toDouble())
         // Access the views from the inflated dialog layout
         val menuButton: FloatingActionButton? = dialog.findViewById(R.id.menuButton)
 
@@ -737,8 +759,6 @@ class MainActivity : AppCompatActivity() {
         val switch = view as Switch
         val isChecked = switch.isChecked
         Toast.makeText(this, if (isChecked) "Night Mode Enabled" else "Night Mode Disabled", Toast.LENGTH_SHORT).show()
-        // Save state to SharedPreferences
-        sharedPreferences.edit().putBoolean(NIGHT_MODE_KEY, isChecked).apply()
     }
 
     private fun createDialog(layoutResId: Int): Dialog {
