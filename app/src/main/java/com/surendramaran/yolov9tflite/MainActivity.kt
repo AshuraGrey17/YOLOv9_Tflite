@@ -2,6 +2,7 @@ package com.surendramaran.yolov9tflite
 
 import android.Manifest
 import android.app.Dialog
+import android.content.SharedPreferences
 import android.content.pm.PackageManager
 import android.content.res.ColorStateList
 import android.graphics.Bitmap
@@ -73,6 +74,11 @@ class MainActivity : AppCompatActivity() {
 
 
     private lateinit var cameraExecutor: ExecutorService
+    private lateinit var sharedPreferences: SharedPreferences
+    private val PREFERENCES_NAME = "AppPreferences"
+    private val ALERT_KEY = "AlertState"
+    private val NOTIFICATION_KEY = "NotificationState"
+    private val NIGHT_MODE_KEY = "NightModeState"
 
     // CardView and TextView for heads-up notification
     private lateinit var notificationBanner: CardView
@@ -98,6 +104,7 @@ class MainActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         binding = ActivityMainBinding.inflate(layoutInflater)
+        sharedPreferences = getSharedPreferences(PREFERENCES_NAME, MODE_PRIVATE)
 
         enableEdgeToEdge()
         setContentView(binding.root)
@@ -415,12 +422,50 @@ class MainActivity : AppCompatActivity() {
         dialog.show()
     }
 
+    private fun loadSwitchStates(
+        alertSwitch: Switch,
+        notificationSwitch: Switch,
+        nightModeSwitch: Switch
+    ) {
+        val alertEnabled = sharedPreferences.getBoolean(ALERT_KEY, false)
+        val notificationsEnabled = sharedPreferences.getBoolean(NOTIFICATION_KEY, true)
+        val nightModeEnabled = sharedPreferences.getBoolean(NIGHT_MODE_KEY, false)
+
+        alertSwitch.isChecked = alertEnabled
+        notificationSwitch.isChecked = notificationsEnabled
+        nightModeSwitch.isChecked = nightModeEnabled
+
+        isNotificationEnabled = notificationsEnabled // Make sure the flag is set correctly
+
+    }
+
 
     private fun showSettingsMenuDialog() {
         val dialog = createDialog(R.layout.settings)
         val backButton: ImageView? = dialog.findViewById(R.id.Backbutton)
         val alertModeLayout: LinearLayout? = dialog.findViewById(R.id.layoutAlertMode)
         val cancelMenuButton: ImageView? = dialog.findViewById(R.id.cancelMenuButton)
+
+        val alertSwitch: Switch = dialog.findViewById(R.id.alertSwitch)
+        val notificationSwitch: Switch = dialog.findViewById(R.id.notificationSwitch)
+        val nightModeSwitch: Switch = dialog.findViewById(R.id.nightModeSwitch)
+
+        // Call load states function
+        loadSwitchStates(alertSwitch, notificationSwitch, nightModeSwitch)
+
+        // Set listeners as before, using the shared_preferences logic
+        alertSwitch.setOnCheckedChangeListener { _, isChecked ->
+            sharedPreferences.edit().putBoolean(ALERT_KEY, isChecked).apply()
+        }
+        notificationSwitch.setOnCheckedChangeListener { _, isChecked ->
+            isNotificationEnabled = isChecked
+            sharedPreferences.edit().putBoolean(NOTIFICATION_KEY, isChecked).apply()
+        }
+        nightModeSwitch.setOnCheckedChangeListener { _, isChecked ->
+            sharedPreferences.edit().putBoolean(NIGHT_MODE_KEY, isChecked).apply()
+
+
+        }
 
         backButton?.setOnClickListener {
             dialog.dismiss()
@@ -440,6 +485,46 @@ class MainActivity : AppCompatActivity() {
         val dialog = createDialog(R.layout.settings_alertmode)
         val backButton: ImageView? = dialog.findViewById(R.id.Backbutton)
         val cancelMenuButton: ImageView? = dialog.findViewById(R.id.cancelMenuButton)
+
+        val roadCrackCheckbox = dialog.findViewById<CheckBox>(R.id.RoadcrackCheckbox)
+        val roadPotholeCheckbox = dialog.findViewById<CheckBox>(R.id.RoadpotholeCheckbox)
+        val speedBumpCheckbox = dialog.findViewById<CheckBox>(R.id.SpeedbumpCheckbox)
+        val roadManholeCheckbox = dialog.findViewById<CheckBox>(R.id.RoadmanholeCheckbox)
+        val unfinishedPavementCheckbox = dialog.findViewById<CheckBox>(R.id.UnfinishedpavementCheckbox)
+        val puddlesCheckbox = dialog.findViewById<CheckBox>(R.id.puddlesCheckbox)
+        val detectButton = dialog.findViewById<Button>(R.id.detectButton)
+
+        // Load saved states from SharedPreferences
+        roadCrackCheckbox.isChecked = sharedPreferences.getBoolean("road_crack", false)
+        roadPotholeCheckbox.isChecked = sharedPreferences.getBoolean("road_pothole", false)
+        speedBumpCheckbox.isChecked = sharedPreferences.getBoolean("speed_bump", false)
+        roadManholeCheckbox.isChecked = sharedPreferences.getBoolean("road_manhole", false)
+        unfinishedPavementCheckbox.isChecked = sharedPreferences.getBoolean("unfinished_pavement", false)
+        puddlesCheckbox.isChecked = sharedPreferences.getBoolean("puddles", false)
+
+        detectButton.setOnClickListener {
+            val selectedClasses = mutableListOf<String>()
+            val editor = sharedPreferences.edit()
+
+            editor.putBoolean("road_crack", roadCrackCheckbox.isChecked)
+            editor.putBoolean("road_pothole", roadPotholeCheckbox.isChecked)
+            editor.putBoolean("speed_bump", speedBumpCheckbox.isChecked)
+            editor.putBoolean("road_manhole", roadManholeCheckbox.isChecked)
+            editor.putBoolean("unfinished_pavement", unfinishedPavementCheckbox.isChecked)
+            editor.putBoolean("puddles", puddlesCheckbox.isChecked)
+
+            if (roadCrackCheckbox.isChecked) selectedClasses.add("Road-cracks")
+            if (roadPotholeCheckbox.isChecked) selectedClasses.add("Potholes")
+            if (speedBumpCheckbox.isChecked) selectedClasses.add("Speed-bumps")
+            if (roadManholeCheckbox.isChecked) selectedClasses.add("Manholes")
+            if (unfinishedPavementCheckbox.isChecked) selectedClasses.add("Unfinished pavements")
+            if (puddlesCheckbox.isChecked) selectedClasses.add("Puddle")
+
+            editor.apply()
+
+            detector?.setTargetClasses(selectedClasses)
+            dialog.dismiss()
+        }
 
         backButton?.setOnClickListener {
             dialog.dismiss()
@@ -625,6 +710,8 @@ class MainActivity : AppCompatActivity() {
         val switch = view as Switch
         val isChecked = switch.isChecked
         Toast.makeText(this, if (isChecked) "Alerts Enabled" else "Alerts Disabled", Toast.LENGTH_SHORT).show()
+        // Save state to SharedPreferences
+        sharedPreferences.edit().putBoolean(ALERT_KEY, isChecked).apply()
     }
 
     fun Notificationsswitch(view: View) {
@@ -640,7 +727,8 @@ class MainActivity : AppCompatActivity() {
             if (isNotificationEnabled) "Notifications Enabled" else "Notifications Disabled",
             Toast.LENGTH_SHORT
         ).show()
-
+        // Save state to SharedPreferences
+        sharedPreferences.edit().putBoolean(NOTIFICATION_KEY, isNotificationEnabled).apply()
         Log.d("NotificationSwitch", "isNotificationEnabled = $isNotificationEnabled") // Debugging log
     }
 
@@ -649,6 +737,8 @@ class MainActivity : AppCompatActivity() {
         val switch = view as Switch
         val isChecked = switch.isChecked
         Toast.makeText(this, if (isChecked) "Night Mode Enabled" else "Night Mode Disabled", Toast.LENGTH_SHORT).show()
+        // Save state to SharedPreferences
+        sharedPreferences.edit().putBoolean(NIGHT_MODE_KEY, isChecked).apply()
     }
 
     private fun createDialog(layoutResId: Int): Dialog {
