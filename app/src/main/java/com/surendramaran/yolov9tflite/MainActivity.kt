@@ -2,6 +2,7 @@ package com.surendramaran.yolov9tflite
 
 import android.Manifest
 import android.app.Dialog
+import android.content.SharedPreferences
 import android.content.pm.PackageManager
 import android.content.res.ColorStateList
 import android.graphics.Bitmap
@@ -53,6 +54,9 @@ import android.widget.ToggleButton
 import com.google.android.material.bottomsheet.BottomSheetDialog
 import org.osmdroid.util.GeoPoint
 import org.osmdroid.views.MapView
+import com.google.android.gms.location.FusedLocationProviderClient
+import com.google.android.gms.location.LocationServices
+import android.location.Location
 
 
 class MainActivity : AppCompatActivity() {
@@ -64,16 +68,38 @@ class MainActivity : AppCompatActivity() {
     private var imageAnalyzer: ImageAnalysis? = null
     private var camera: Camera? = null
     private var cameraProvider: ProcessCameraProvider? = null
-    private var isNotificationEnabled = true
+    private var isNotificationEnabled = true // Default is ON
     private var detector: Detector? = null
-    private lateinit var alertSwitch: Switch
     private var reportImageView: ImageView? = null
     private var profileImageView: ImageView? = null
 
+
+    private lateinit var fusedLocationClient: FusedLocationProviderClient
+    private val LAT_KEY = "Latitude"
+    private val LON_KEY = "Longitude"
+
     private lateinit var cameraExecutor: ExecutorService
+    private lateinit var sharedPreferences: SharedPreferences
+    private val PREFERENCES_NAME = "AppPreferences"
+    private val ALERT_KEY = "AlertState"
+    private val NOTIFICATION_KEY = "NotificationState"
+    private val NIGHT_MODE_KEY = "NightModeState"
+
+    // CardView and TextView for heads-up notification
     private lateinit var notificationBanner: CardView
     private lateinit var notificationText: TextView
+    private val locationPermissionLauncher =
+        registerForActivityResult(ActivityResultContracts.RequestPermission()) { isGranted ->
+            if (isGranted) {
+                Toast.makeText(this, "Location permission granted!", Toast.LENGTH_SHORT).show()
 
+            } else {
+                Toast.makeText(this, "Location permission denied.", Toast.LENGTH_SHORT).show()
+            }
+        }
+
+
+    // Enum class for severity levels
     enum class Severity(val color: Int) {
         LOW(R.color.yellow),
         MEDIUM(R.color.orange),
@@ -83,6 +109,22 @@ class MainActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         binding = ActivityMainBinding.inflate(layoutInflater)
+        sharedPreferences = getSharedPreferences(PREFERENCES_NAME, MODE_PRIVATE)
+        fusedLocationClient = LocationServices.getFusedLocationProviderClient(this)
+
+        if (ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION)
+            == PackageManager.PERMISSION_GRANTED) {
+
+            fusedLocationClient.lastLocation.addOnSuccessListener { location: Location? ->
+                location?.let {
+                    // Save exact location
+                    sharedPreferences.edit()
+                        .putFloat(LAT_KEY, it.latitude.toFloat())
+                        .putFloat(LON_KEY, it.longitude.toFloat())
+                        .apply()
+                }
+            }
+        }
 
         enableEdgeToEdge()
         setContentView(binding.root)
@@ -91,8 +133,7 @@ class MainActivity : AppCompatActivity() {
             v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom)
             insets
         }
-        val fab = findViewById<FloatingActionButton>(R.id.fab)
-        fab.setOnClickListener {
+        binding.fab.setOnClickListener {
             val dialog = BottomSheetDialog(this)
             val view = layoutInflater.inflate(R.layout.bottomsheetlayout, null)
             dialog.setContentView(view)
@@ -101,15 +142,18 @@ class MainActivity : AppCompatActivity() {
 
             dialog.setOnShowListener {
                 mapView.postDelayed({
-                    val point = GeoPoint(14.5995, 120.9842)
-                    mapView.controller.setZoom(16.0)
-                    mapView.controller.setCenter(point)
-                    Log.d("MapFix", "🌏 Forced center to Manila: $point")
+                    if (ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION)
+                        == PackageManager.PERMISSION_GRANTED) {
+                        MapManager.setupMap(this, mapView, 14.5995, 120.9842)
+                    } else {
+                        Toast.makeText(this, "Location permission not granted.", Toast.LENGTH_SHORT).show()
+                    }
                 }, 500)
             }
 
             dialog.show()
         }
+
         cameraExecutor = Executors.newSingleThreadExecutor()
 
         cameraExecutor.execute {
@@ -118,16 +162,32 @@ class MainActivity : AppCompatActivity() {
             }
         }
 
+        if (ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION)
+            != PackageManager.PERMISSION_GRANTED) {
+            ActivityCompat.requestPermissions(
+                this,
+                arrayOf(Manifest.permission.ACCESS_FINE_LOCATION),
+                1
+            )
+        }
+
         if (allPermissionsGranted()) {
             startCamera()
         } else {
             ActivityCompat.requestPermissions(this, REQUIRED_PERMISSIONS, REQUEST_CODE_PERMISSIONS)
         }
 
+
+        // Initialize notification components
         notificationBanner = findViewById(R.id.detectionNotificationCard)
         notificationText = findViewById(R.id.detectionNotificationText)
 
-        notificationBanner.setOnClickListener { hideNotification() }
+        // Dismiss notification on tap
+        notificationBanner.setOnClickListener {
+            hideNotification()
+        }
+
+        // Floating Action Button for showing bottom dialog
         binding.fab.setOnClickListener { showBottomDialog() }
     }
     private val imagePickerLauncher = registerForActivityResult(
@@ -201,7 +261,6 @@ class MainActivity : AppCompatActivity() {
     private fun allPermissionsGranted() = REQUIRED_PERMISSIONS.all {
         ContextCompat.checkSelfPermission(baseContext, it) == PackageManager.PERMISSION_GRANTED
     }
-
 
     private val requestPermissionLauncher = registerForActivityResult(ActivityResultContracts.RequestMultiplePermissions()) {
         if (it[Manifest.permission.CAMERA] == true) { startCamera() }
@@ -327,7 +386,9 @@ class MainActivity : AppCompatActivity() {
         val dialog = createDialog(R.layout.bottomsheetlayout)
         dialog.show()
         val mapView = dialog.findViewById<MapView>(R.id.map)
-        MapManager.setupMap(this, mapView, 14.5995, 120.9842) // Use your desired lat/lon
+        val lat = sharedPreferences.getFloat(LAT_KEY, 14.5995f) // Default to Manila if not set
+        val lon = sharedPreferences.getFloat(LON_KEY, 120.9842f)
+        MapManager.setupMap(this, mapView, lat.toDouble(), lon.toDouble())
         // Access the views from the inflated dialog layout
         val menuButton: FloatingActionButton? = dialog.findViewById(R.id.menuButton)
 
@@ -383,12 +444,50 @@ class MainActivity : AppCompatActivity() {
         dialog.show()
     }
 
+    private fun loadSwitchStates(
+        alertSwitch: Switch,
+        notificationSwitch: Switch,
+        nightModeSwitch: Switch
+    ) {
+        val alertEnabled = sharedPreferences.getBoolean(ALERT_KEY, false)
+        val notificationsEnabled = sharedPreferences.getBoolean(NOTIFICATION_KEY, true)
+        val nightModeEnabled = sharedPreferences.getBoolean(NIGHT_MODE_KEY, false)
+
+        alertSwitch.isChecked = alertEnabled
+        notificationSwitch.isChecked = notificationsEnabled
+        nightModeSwitch.isChecked = nightModeEnabled
+
+        isNotificationEnabled = notificationsEnabled // Make sure the flag is set correctly
+
+    }
+
 
     private fun showSettingsMenuDialog() {
         val dialog = createDialog(R.layout.settings)
         val backButton: ImageView? = dialog.findViewById(R.id.Backbutton)
         val alertModeLayout: LinearLayout? = dialog.findViewById(R.id.layoutAlertMode)
         val cancelMenuButton: ImageView? = dialog.findViewById(R.id.cancelMenuButton)
+
+        val alertSwitch: Switch = dialog.findViewById(R.id.alertSwitch)
+        val notificationSwitch: Switch = dialog.findViewById(R.id.notificationSwitch)
+        val nightModeSwitch: Switch = dialog.findViewById(R.id.nightModeSwitch)
+
+        // Call load states function
+        loadSwitchStates(alertSwitch, notificationSwitch, nightModeSwitch)
+
+        // Set listeners as before, using the shared_preferences logic
+        alertSwitch.setOnCheckedChangeListener { _, isChecked ->
+            sharedPreferences.edit().putBoolean(ALERT_KEY, isChecked).apply()
+        }
+        notificationSwitch.setOnCheckedChangeListener { _, isChecked ->
+            isNotificationEnabled = isChecked
+            sharedPreferences.edit().putBoolean(NOTIFICATION_KEY, isChecked).apply()
+        }
+        nightModeSwitch.setOnCheckedChangeListener { _, isChecked ->
+            sharedPreferences.edit().putBoolean(NIGHT_MODE_KEY, isChecked).apply()
+
+
+        }
 
         backButton?.setOnClickListener {
             dialog.dismiss()
@@ -403,15 +502,6 @@ class MainActivity : AppCompatActivity() {
 
         dialog.show()
     }
-    private fun enableAlertMode() {
-        detector?.setTargetClasses(listOf("Road-cracks", "Potholes", "Speed-bumps", "Manholes"))
-        toast("Alert mode enabled")
-    }
-
-    private fun disableAlertMode() {
-        detector?.setTargetClasses(emptyList())
-        toast("Alert mode disabled")
-    }
 
     private fun showAlertModeDialog() {
         val dialog = createDialog(R.layout.settings_alertmode)
@@ -424,18 +514,27 @@ class MainActivity : AppCompatActivity() {
         val roadManholeCheckbox = dialog.findViewById<CheckBox>(R.id.RoadmanholeCheckbox)
         val unfinishedPavementCheckbox = dialog.findViewById<CheckBox>(R.id.UnfinishedpavementCheckbox)
         val puddlesCheckbox = dialog.findViewById<CheckBox>(R.id.puddlesCheckbox)
-        val detectButton = dialog.findViewById<Button>(R.id.viewSuggestedButton)
+        val detectButton = dialog.findViewById<Button>(R.id.detectButton)
 
-        val currentClasses = detector?.getTargetClasses() ?: emptyList()
-        roadCrackCheckbox.isChecked = currentClasses.contains("Road-cracks")
-        roadPotholeCheckbox.isChecked = currentClasses.contains("Potholes")
-        speedBumpCheckbox.isChecked = currentClasses.contains("Speed-bumps")
-        roadManholeCheckbox.isChecked = currentClasses.contains("Manholes")
-        unfinishedPavementCheckbox.isChecked = currentClasses.contains("Unfinished pavements")
-        puddlesCheckbox.isChecked = currentClasses.contains("Puddle")
+        // Load saved states from SharedPreferences
+        roadCrackCheckbox.isChecked = sharedPreferences.getBoolean("road_crack", false)
+        roadPotholeCheckbox.isChecked = sharedPreferences.getBoolean("road_pothole", false)
+        speedBumpCheckbox.isChecked = sharedPreferences.getBoolean("speed_bump", false)
+        roadManholeCheckbox.isChecked = sharedPreferences.getBoolean("road_manhole", false)
+        unfinishedPavementCheckbox.isChecked = sharedPreferences.getBoolean("unfinished_pavement", false)
+        puddlesCheckbox.isChecked = sharedPreferences.getBoolean("puddles", false)
 
         detectButton.setOnClickListener {
             val selectedClasses = mutableListOf<String>()
+            val editor = sharedPreferences.edit()
+
+            editor.putBoolean("road_crack", roadCrackCheckbox.isChecked)
+            editor.putBoolean("road_pothole", roadPotholeCheckbox.isChecked)
+            editor.putBoolean("speed_bump", speedBumpCheckbox.isChecked)
+            editor.putBoolean("road_manhole", roadManholeCheckbox.isChecked)
+            editor.putBoolean("unfinished_pavement", unfinishedPavementCheckbox.isChecked)
+            editor.putBoolean("puddles", puddlesCheckbox.isChecked)
+
             if (roadCrackCheckbox.isChecked) selectedClasses.add("Road-cracks")
             if (roadPotholeCheckbox.isChecked) selectedClasses.add("Potholes")
             if (speedBumpCheckbox.isChecked) selectedClasses.add("Speed-bumps")
@@ -443,13 +542,15 @@ class MainActivity : AppCompatActivity() {
             if (unfinishedPavementCheckbox.isChecked) selectedClasses.add("Unfinished pavements")
             if (puddlesCheckbox.isChecked) selectedClasses.add("Puddle")
 
+            editor.apply()
+
             detector?.setTargetClasses(selectedClasses)
             dialog.dismiss()
         }
 
         backButton?.setOnClickListener {
             dialog.dismiss()
-            showSettingsMenuDialog()
+            showSettingsMenuDialog() // Go back to main menu
         }
         cancelMenuButton?.setOnClickListener { dialog.dismiss() }
 
@@ -629,14 +730,11 @@ class MainActivity : AppCompatActivity() {
     }
     fun Alertswitch(view: View) {
         val switch = view as Switch
-        if (switch.isChecked) {
-            enableAlertMode() // Method to enable alert mode
-        } else {
-            disableAlertMode() // Method to disable alert mode
-        }
-        Toast.makeText(this, if (switch.isChecked) "Alert Mode Enabled" else "Alert Mode Disabled", Toast.LENGTH_SHORT).show()
+        val isChecked = switch.isChecked
+        Toast.makeText(this, if (isChecked) "Alerts Enabled" else "Alerts Disabled", Toast.LENGTH_SHORT).show()
+        // Save state to SharedPreferences
+        sharedPreferences.edit().putBoolean(ALERT_KEY, isChecked).apply()
     }
-
 
     fun Notificationsswitch(view: View) {
         val switch = view as Switch
@@ -651,7 +749,8 @@ class MainActivity : AppCompatActivity() {
             if (isNotificationEnabled) "Notifications Enabled" else "Notifications Disabled",
             Toast.LENGTH_SHORT
         ).show()
-
+        // Save state to SharedPreferences
+        sharedPreferences.edit().putBoolean(NOTIFICATION_KEY, isNotificationEnabled).apply()
         Log.d("NotificationSwitch", "isNotificationEnabled = $isNotificationEnabled") // Debugging log
     }
 
