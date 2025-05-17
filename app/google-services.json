@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "153619777350",
+    "project_id": "sweet-ride-home",
+    "storage_bucket": "sweet-ride-home.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:153619777350:android:da3d2760e2610c7d000747",
+        "android_client_info": {
+          "package_name": "com.surendramaran.yolov9tflite"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyD-Kdro8TEvnMSR-SHzEvaaPsM6q0VMxfI"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

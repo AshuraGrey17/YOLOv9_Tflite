@@ -40,7 +40,7 @@ class OverlayView(context: Context?, attrs: AttributeSet?) : View(context, attrs
         textPaint.style = Paint.Style.FILL
         textPaint.textSize = 50f
 
-        boxPaint.color = Color.TRANSPARENT // Makes bounding box invisible
+        boxPaint.color = Color.RED// Makes bounding box invisible
         boxPaint.strokeWidth = 8F
         boxPaint.style = Paint.Style.STROKE
     }
@@ -48,8 +48,37 @@ class OverlayView(context: Context?, attrs: AttributeSet?) : View(context, attrs
     override fun draw(canvas: Canvas) {
         super.draw(canvas)
 
+        for (result in results) {
+            val left = result.x1 * width
+            val top = result.y1 * height
+            val right = result.x2 * width
+            val bottom = result.y2 * height
 
+            // Set box color based on severity
+            when (result.clsName) {
+                "Manholes", "Road-cracks" -> boxPaint.color = Color.YELLOW
+                "Uneven-terrain", "Speed-Bumps" -> boxPaint.color = Color.rgb(255, 165, 0) // Orange
+                "Unfinished-pavements", "Potholes", "Puddle" -> boxPaint.color = Color.RED
+                else -> boxPaint.color = Color.WHITE
+            }
+
+            // Draw bounding box
+            canvas.drawRect(left, top, right, bottom, boxPaint)
+
+            // Draw label text
+            val label = "${result.clsName} ${(result.cnf * 100).toInt()}%"
+            textPaint.getTextBounds(label, 0, label.length, bounds)
+            val textWidth = bounds.width()
+            val textHeight = bounds.height()
+
+            val labelLeft = left
+            val labelTop = top - textHeight - 10
+
+            canvas.drawRect(labelLeft, labelTop, labelLeft + textWidth + 16, labelTop + textHeight + 16, textBackgroundPaint)
+            canvas.drawText(label, labelLeft + 8, labelTop + textHeight + 8, textPaint)
+        }
     }
+
 
     fun setResults(boundingBoxes: List<BoundingBox>) {
         results = boundingBoxes

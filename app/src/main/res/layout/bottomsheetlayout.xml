@@ -14,7 +14,9 @@
         android:layout_marginStart="15dp"
         android:layout_marginTop="1dp"
         android:backgroundTint="@color/white"
-        android:src="@drawable/list" />
+        android:src="@drawable/list"
+        app:tint="@color/black" />
+
 
     <!-- ✅ Top Center Button -->
     <ImageView
@@ -48,7 +50,7 @@
         android:id="@+id/searchView"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:background="@drawable/border_rounded"
+        android:background="@drawable/border_rounded2"
         android:layout_below="@id/gpuCard"
         android:layout_marginTop="12dp"
         android:layout_marginStart="16dp"
@@ -56,8 +58,8 @@
         android:queryHint="Search Location" />
 
     <!-- 🗺️ Centered Map -->
-    <ImageView
-        android:id="@+id/imageMap"
+    <org.osmdroid.views.MapView
+        android:id="@+id/map"
         android:layout_width="match_parent"
         android:layout_height="200dp"
         android:layout_below="@id/searchView"
@@ -72,9 +74,9 @@
         android:id="@+id/bottomBorder"
         android:layout_width="match_parent"
         android:layout_height="80dp"
-        android:layout_below="@id/imageMap"
+        android:layout_below="@id/map"
         android:layout_marginTop="20dp"
-        android:background="@drawable/border_rounded"
+        android:background="@drawable/border_rounded2"
         android:orientation="vertical"
         android:padding="10dp">
 
