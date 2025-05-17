@@ -57,13 +57,16 @@ import org.osmdroid.views.MapView
 import com.google.android.gms.location.FusedLocationProviderClient
 import com.google.android.gms.location.LocationServices
 import android.location.Location
+import org.osmdroid.views.overlay.mylocation.MyLocationNewOverlay
+import java.io.File
+import java.io.FileOutputStream
 
 
 class MainActivity : AppCompatActivity() {
 
     private lateinit var binding: ActivityMainBinding
     private val isFrontCamera = false
-
+    private val detectionRecords = mutableListOf<DetectionRecord>()
     private var preview: Preview? = null
     private var imageAnalyzer: ImageAnalysis? = null
     private var camera: Camera? = null
@@ -144,7 +147,7 @@ class MainActivity : AppCompatActivity() {
                 mapView.postDelayed({
                     if (ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION)
                         == PackageManager.PERMISSION_GRANTED) {
-                        MapManager.setupMap(this, mapView, 14.5995, 120.9842)
+                        MapManager.setupMap(this, mapView, 14.5995, 120.9842, detectionRecords)
                     } else {
                         Toast.makeText(this, "Location permission not granted.", Toast.LENGTH_SHORT).show()
                     }
@@ -201,6 +204,15 @@ class MainActivity : AppCompatActivity() {
     ) { uri: Uri? ->
         uri?.let { profileImageView?.setImageURI(it) }
     }
+    private fun saveBitmapToCache(bitmap: Bitmap, filename: String): String {
+        val file = File(cacheDir, filename)
+        val outputStream = FileOutputStream(file)
+        bitmap.compress(Bitmap.CompressFormat.PNG, 100, outputStream)
+        outputStream.flush()
+        outputStream.close()
+        return file.absolutePath
+    }
+
 
     private fun startCamera() {
         val cameraProviderFuture = ProcessCameraProvider.getInstance(baseContext)
@@ -245,7 +257,7 @@ class MainActivity : AppCompatActivity() {
             }
 
             val rotatedBitmap = Bitmap.createBitmap(bitmapBuffer, 0, 0, bitmapBuffer.width, bitmapBuffer.height, matrix, true)
-            detector?.detect(rotatedBitmap)
+            onDetectWithBitmap(rotatedBitmap)
         }
 
         cameraProvider.unbindAll()
@@ -261,6 +273,50 @@ class MainActivity : AppCompatActivity() {
     private fun allPermissionsGranted() = REQUIRED_PERMISSIONS.all {
         ContextCompat.checkSelfPermission(baseContext, it) == PackageManager.PERMISSION_GRANTED
     }
+    private fun onDetectWithBitmap(rotatedBitmap: Bitmap) {
+        detector?.detect(rotatedBitmap) // Still perform detection
+
+        // Store rotatedBitmap for later use
+        // We'll grab the latest result inside detector (or fake it for now)
+        // For prototype, just save image and timestamp
+        val timestamp = System.currentTimeMillis()
+        val imagePath = saveBitmapToCache(rotatedBitmap, "detection_$timestamp.png")
+
+// Try to fetch the most recent location
+        if (ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION)
+            == PackageManager.PERMISSION_GRANTED) {
+
+            fusedLocationClient.lastLocation.addOnSuccessListener { location ->
+                val latitude = location?.latitude ?: 0.0
+                val longitude = location?.longitude ?: 0.0
+
+                val record = DetectionRecord(
+                    anomalyType = "Unknown", // Will be updated later in onDetect()
+                    imagePath = imagePath,
+                    latitude = latitude,
+                    longitude = longitude,
+                    timestamp = timestamp
+                )
+
+                detectionRecords.add(record)
+                Log.d("DetectionLog", "📍 Detection saved with location: $latitude, $longitude")
+            }
+
+        } else {
+            // If permission not granted, still save the detection with default location
+            val record = DetectionRecord(
+                anomalyType = "Unknown",
+                imagePath = imagePath,
+                latitude = 0.0,
+                longitude = 0.0,
+                timestamp = timestamp
+            )
+
+            detectionRecords.add(record)
+            Log.w("DetectionLog", "⚠️ Location not available — detection saved without GPS")
+        }
+    }
+
 
     private val requestPermissionLauncher = registerForActivityResult(ActivityResultContracts.RequestMultiplePermissions()) {
         if (it[Manifest.permission.CAMERA] == true) { startCamera() }
@@ -310,20 +366,22 @@ class MainActivity : AppCompatActivity() {
 
         runOnUiThread {
             if (boundingBoxes.isNotEmpty()) {
-                val detectedBox = boundingBoxes[0] // Only process the first detection
+                val detectedBox = boundingBoxes[0]
                 val detectedClass = detectedBox.clsName
                 val severity = getSeverity(detectedClass)
 
                 showNotification("$detectedClass detected! Severity: ${severity.name}")
 
                 if (severity == Severity.HIGH) {
-                    vibratePhone() // Vibrate for high severity detections
+                    vibratePhone()
                 }
 
                 binding.overlay.apply {
-                    setResults(listOf(detectedBox)) // Pass only one bounding box
+                    setResults(listOf(detectedBox))
                     invalidate()
                 }
+
+                Log.d("DetectionLog", "📦 Detection received: $detectedClass")
             } else {
                 hideNotification()
             }
@@ -331,6 +389,8 @@ class MainActivity : AppCompatActivity() {
             binding.inferenceTime.text = "${inferenceTime}ms"
         }
     }
+
+
 
     private fun vibratePhone() {
         if (!isNotificationEnabled) return // 🚨 Stop vibration if notifications are off
@@ -388,7 +448,7 @@ class MainActivity : AppCompatActivity() {
         val mapView = dialog.findViewById<MapView>(R.id.map)
         val lat = sharedPreferences.getFloat(LAT_KEY, 14.5995f) // Default to Manila if not set
         val lon = sharedPreferences.getFloat(LON_KEY, 120.9842f)
-        MapManager.setupMap(this, mapView, lat.toDouble(), lon.toDouble())
+        MapManager.setupMap(this, mapView, lat.toDouble(), lon.toDouble(), detectionRecords)
         // Access the views from the inflated dialog layout
         val menuButton: FloatingActionButton? = dialog.findViewById(R.id.menuButton)
 
@@ -407,7 +467,7 @@ class MainActivity : AppCompatActivity() {
         val settingsLayout: LinearLayout? = dialog.findViewById(R.id.layoutSettings)
         val profileLayout: LinearLayout? = dialog.findViewById(R.id.layoutProfile)
         val reportLayout: LinearLayout? = dialog.findViewById(R.id.layoutReport)
-        val cancelMenuButton: ImageView? = dialog.findViewById(R.id.cancelMenuButton)
+
 
         settingsLayout?.setOnClickListener {
             dialog.dismiss()
@@ -439,7 +499,7 @@ class MainActivity : AppCompatActivity() {
             // Update the backgroundTint using the appropriate color
             buttonView.backgroundTintList = ColorStateList.valueOf(backgroundColor)
         }
-        cancelMenuButton?.setOnClickListener { dialog.dismiss() }
+
 
         dialog.show()
     }
@@ -466,7 +526,7 @@ class MainActivity : AppCompatActivity() {
         val dialog = createDialog(R.layout.settings)
         val backButton: ImageView? = dialog.findViewById(R.id.Backbutton)
         val alertModeLayout: LinearLayout? = dialog.findViewById(R.id.layoutAlertMode)
-        val cancelMenuButton: ImageView? = dialog.findViewById(R.id.cancelMenuButton)
+
 
         val alertSwitch: Switch = dialog.findViewById(R.id.alertSwitch)
         val notificationSwitch: Switch = dialog.findViewById(R.id.notificationSwitch)
@@ -498,7 +558,7 @@ class MainActivity : AppCompatActivity() {
             showAlertModeDialog()
         }
 
-        cancelMenuButton?.setOnClickListener { dialog.dismiss() }
+
 
         dialog.show()
     }
@@ -506,7 +566,7 @@ class MainActivity : AppCompatActivity() {
     private fun showAlertModeDialog() {
         val dialog = createDialog(R.layout.settings_alertmode)
         val backButton: ImageView? = dialog.findViewById(R.id.Backbutton)
-        val cancelMenuButton: ImageView? = dialog.findViewById(R.id.cancelMenuButton)
+
 
         val roadCrackCheckbox = dialog.findViewById<CheckBox>(R.id.RoadcrackCheckbox)
         val roadPotholeCheckbox = dialog.findViewById<CheckBox>(R.id.RoadpotholeCheckbox)
@@ -552,7 +612,7 @@ class MainActivity : AppCompatActivity() {
             dialog.dismiss()
             showSettingsMenuDialog() // Go back to main menu
         }
-        cancelMenuButton?.setOnClickListener { dialog.dismiss() }
+
 
         dialog.show()
     }
@@ -562,7 +622,7 @@ class MainActivity : AppCompatActivity() {
         val backButton: ImageView? = dialog.findViewById(R.id.Backbutton)
         val userDetailsLayout: LinearLayout? = dialog.findViewById(R.id.layoutuserdetails)
         val signOutLayout: LinearLayout? = dialog.findViewById(R.id.layoutsignout)
-        val cancelMenuButton: ImageView? = dialog.findViewById(R.id.cancelMenuButton)
+
 
         userDetailsLayout?.setOnClickListener {
             dialog.dismiss()
@@ -570,7 +630,7 @@ class MainActivity : AppCompatActivity() {
         }
 
         signOutLayout?.setOnClickListener { dialog.dismiss() }
-        cancelMenuButton?.setOnClickListener { dialog.dismiss() }
+
 
         dialog.show()
         backButton?.setOnClickListener {
@@ -582,7 +642,7 @@ class MainActivity : AppCompatActivity() {
     private fun showUserDetailsDialog() {
         val dialog = createDialog(R.layout.profile_userdetails)
         val backButton: ImageView? = dialog.findViewById(R.id.Backbutton)
-        val cancelMenuButton: ImageView? = dialog.findViewById(R.id.cancelMenuButton)
+
         val userPicture: ImageView? = dialog.findViewById(R.id.UserPicture)
         // Click to change image
         userPicture?.setOnClickListener {
@@ -594,17 +654,17 @@ class MainActivity : AppCompatActivity() {
             dialog.dismiss()
             showProfileMenuDialog()
         }
-        cancelMenuButton?.setOnClickListener { dialog.dismiss() }
+
 
         dialog.show()
     }
 
-    private fun showReportMenuDialog() {
+    fun showReportMenuDialog() {
         val dialog = createDialog(R.layout.report_hazard)
 
         // Top buttons
         val backButton: ImageView = dialog.findViewById(R.id.Backbutton)
-        val cancelMenuButton: ImageView = dialog.findViewById(R.id.cancelMenuButton)
+
         val topCenterButton: ImageView = dialog.findViewById(R.id.topCenterButton)
 
         // Info TextViews
@@ -634,9 +694,7 @@ class MainActivity : AppCompatActivity() {
             showBottomDialog()
         }
 
-        cancelMenuButton.setOnClickListener {
-            dialog.dismiss()
-        }
+
 
         val reportButton: Button = dialog.findViewById(R.id.Reportbutton)
         reportButton.setOnClickListener {
@@ -652,7 +710,7 @@ class MainActivity : AppCompatActivity() {
 
         // Top Buttons
         val backButton: ImageView = dialog.findViewById(R.id.Backbutton)
-        val cancelMenuButton: ImageView = dialog.findViewById(R.id.cancelMenuButton)
+
         val topCenterButton: ImageView = dialog.findViewById(R.id.topCenterButton)
 
         // Info Fields
@@ -674,9 +732,7 @@ class MainActivity : AppCompatActivity() {
             showReportMenuDialog()
         }
 
-        cancelMenuButton.setOnClickListener {
-            dialog.dismiss()
-        }
+
 
         topCenterButton.setOnClickListener {
             dialog.dismiss()
@@ -703,7 +759,7 @@ class MainActivity : AppCompatActivity() {
 
         // Top buttons
         val backButton: ImageView = dialog.findViewById(R.id.Backbutton)
-        val cancelMenuButton: ImageView = dialog.findViewById(R.id.cancelMenuButton)
+
         val topCenterButton: ImageView = dialog.findViewById(R.id.topCenterButton)
 
         val viewSuggestedButton: Button = dialog.findViewById(R.id.viewSuggestedButton)
@@ -713,9 +769,7 @@ class MainActivity : AppCompatActivity() {
             showReportVerificationDialog() // go back to verification screen if needed
         }
 
-        cancelMenuButton.setOnClickListener {
-            dialog.dismiss()
-        }
+        
 
         topCenterButton.setOnClickListener {
             dialog.dismiss()
