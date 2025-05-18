@@ -65,6 +65,8 @@ import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.storage.FirebaseStorage
 import com.bumptech.glide.Glide
 import java.io.ByteArrayOutputStream
+import java.io.File
+import java.io.FileOutputStream
 import java.util.Date
 import java.util.Locale
 
@@ -73,7 +75,6 @@ class MainActivity : AppCompatActivity() {
 
     private lateinit var binding: ActivityMainBinding
     private val isFrontCamera = false
-
     private var preview: Preview? = null
     private var imageAnalyzer: ImageAnalysis? = null
     private var camera: Camera? = null
@@ -82,19 +83,17 @@ class MainActivity : AppCompatActivity() {
     private var detector: Detector? = null
     private var reportImageView: ImageView? = null
     private var profileImageView: ImageView? = null
-
-
     private lateinit var fusedLocationClient: FusedLocationProviderClient
     private val LAT_KEY = "Latitude"
     private val LON_KEY = "Longitude"
     private var selectedReportBitmap: Bitmap? = null
-
     private lateinit var cameraExecutor: ExecutorService
     private lateinit var sharedPreferences: SharedPreferences
     private val PREFERENCES_NAME = "AppPreferences"
     private val ALERT_KEY = "AlertState"
     private val NOTIFICATION_KEY = "NotificationState"
     private val NIGHT_MODE_KEY = "NightModeState"
+    private val detectionRecords = mutableListOf<DetectionRecord>()
 
     // CardView and TextView for heads-up notification
     private lateinit var notificationBanner: CardView
@@ -144,7 +143,26 @@ class MainActivity : AppCompatActivity() {
             v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom)
             insets
         }
-        binding.fab.setOnClickListener { showBottomDialog() }
+        binding.fab.setOnClickListener {
+            val dialog = BottomSheetDialog(this)
+            val view = layoutInflater.inflate(R.layout.bottomsheetlayout, null)
+            dialog.setContentView(view)
+
+            val mapView = view.findViewById<MapView>(R.id.map)
+
+            dialog.setOnShowListener {
+                mapView.postDelayed({
+                    if (ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION)
+                        == PackageManager.PERMISSION_GRANTED) {
+                        MapManager.setupMap(this, mapView, 14.5995, 120.9842, detectionRecords)
+                    } else {
+                        Toast.makeText(this, "Location permission not granted.", Toast.LENGTH_SHORT).show()
+                    }
+                }, 500)
+            }
+
+            dialog.show()
+        }
 
         cameraExecutor = Executors.newSingleThreadExecutor()
 
@@ -216,6 +234,14 @@ class MainActivity : AppCompatActivity() {
             bindCameraUseCases()
         }, ContextCompat.getMainExecutor(this))
     }
+    private fun saveBitmapToCache(bitmap: Bitmap, filename: String): String {
+        val file = File(cacheDir, filename)
+        val outputStream = FileOutputStream(file)
+        bitmap.compress(Bitmap.CompressFormat.PNG, 100, outputStream)
+        outputStream.flush()
+        outputStream.close()
+        return file.absolutePath
+    }
 
     private fun bindCameraUseCases() {
         val cameraProvider = cameraProvider ?: throw IllegalStateException("Camera initialization failed.")
@@ -252,7 +278,7 @@ class MainActivity : AppCompatActivity() {
             }
 
             val rotatedBitmap = Bitmap.createBitmap(bitmapBuffer, 0, 0, bitmapBuffer.width, bitmapBuffer.height, matrix, true)
-            detector?.detect(rotatedBitmap)
+            onDetectWithBitmap(rotatedBitmap)
         }
 
         cameraProvider.unbindAll()
@@ -265,8 +291,52 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
+
     private fun allPermissionsGranted() = REQUIRED_PERMISSIONS.all {
         ContextCompat.checkSelfPermission(baseContext, it) == PackageManager.PERMISSION_GRANTED
+    }
+    private fun onDetectWithBitmap(rotatedBitmap: Bitmap) {
+        detector?.detect(rotatedBitmap) // Still perform detection
+
+        // Store rotatedBitmap for later use
+        // We'll grab the latest result inside detector (or fake it for now)
+        // For prototype, just save image and timestamp
+        val timestamp = System.currentTimeMillis()
+        val imagePath = saveBitmapToCache(rotatedBitmap, "detection_$timestamp.png")
+
+// Try to fetch the most recent location
+        if (ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION)
+            == PackageManager.PERMISSION_GRANTED) {
+
+            fusedLocationClient.lastLocation.addOnSuccessListener { location ->
+                val latitude = location?.latitude ?: 0.0
+                val longitude = location?.longitude ?: 0.0
+
+                val record = DetectionRecord(
+                    anomalyType = "Unknown", // Will be updated later in onDetect()
+                    imagePath = imagePath,
+                    latitude = latitude,
+                    longitude = longitude,
+                    timestamp = timestamp
+                )
+
+                detectionRecords.add(record)
+                Log.d("DetectionLog", "📍 Detection saved with location: $latitude, $longitude")
+            }
+
+        } else {
+            // If permission not granted, still save the detection with default location
+            val record = DetectionRecord(
+                anomalyType = "Unknown",
+                imagePath = imagePath,
+                latitude = 0.0,
+                longitude = 0.0,
+                timestamp = timestamp
+            )
+
+            detectionRecords.add(record)
+            Log.w("DetectionLog", "⚠️ Location not available — detection saved without GPS")
+        }
     }
 
     private val requestPermissionLauncher = registerForActivityResult(ActivityResultContracts.RequestMultiplePermissions()) {
@@ -404,71 +474,19 @@ class MainActivity : AppCompatActivity() {
     private fun showBottomDialog() {
         val dialog = createDialog(R.layout.bottomsheetlayout)
         dialog.show()
-
         val mapView = dialog.findViewById<MapView>(R.id.map)
-        val searchView = dialog.findViewById<SearchView>(R.id.searchView)
-        val locationText: TextView? = dialog.findViewById(R.id.location)
-
-        val lat = sharedPreferences.getFloat(LAT_KEY, 14.5995f)
+        val lat = sharedPreferences.getFloat(LAT_KEY, 14.5995f) // Default to Manila if not set
         val lon = sharedPreferences.getFloat(LON_KEY, 120.9842f)
-
-        // 🌍 Show map at current location by default
-        MapManager.setupMap(this, mapView, lat.toDouble(), lon.toDouble())
-        locationText?.text = "Lat: $lat, Lon: $lon"
-
-        // 🔍 Handle search
-        searchView.setOnQueryTextListener(object : SearchView.OnQueryTextListener {
-            override fun onQueryTextSubmit(query: String?): Boolean {
-                if (query.isNullOrBlank()) {
-                    // If user clears the query and presses enter, reset to current location
-                    MapManager.setupMap(this@MainActivity, mapView, lat.toDouble(), lon.toDouble())
-                    locationText?.text = "Lat: $lat, Lon: $lon"
-                    Toast.makeText(this@MainActivity, "Showing your current location", Toast.LENGTH_SHORT).show()
-                    return true
-                }
-
-                val geocoder = Geocoder(this@MainActivity, Locale.getDefault())
-                try {
-                    val addresses = geocoder.getFromLocationName(query, 1)
-                    if (!addresses.isNullOrEmpty()) {
-                        val address = addresses[0]
-                        val searchedLat = address.latitude
-                        val searchedLon = address.longitude
-
-                        MapManager.setupMap(this@MainActivity, mapView, searchedLat, searchedLon)
-                        locationText?.text = address.getAddressLine(0)
-
-                        Toast.makeText(
-                            this@MainActivity,
-                            "Location found: ${address.getAddressLine(0)}",
-                            Toast.LENGTH_SHORT
-                        ).show()
-                    } else {
-                        Toast.makeText(this@MainActivity, "No location found for \"$query\"", Toast.LENGTH_SHORT).show()
-                    }
-                } catch (e: Exception) {
-                    Toast.makeText(this@MainActivity, "Geocoding failed: ${e.message}", Toast.LENGTH_SHORT).show()
-                    Log.e("SearchView", "Geocoding error: ${e.message}", e)
-                }
-
-                return true
-            }
-
-            override fun onQueryTextChange(newText: String?): Boolean {
-                // Do nothing while typing
-                return false
-            }
-        })
-
+        MapManager.setupMap(this, mapView, lat.toDouble(), lon.toDouble(), detectionRecords)
+        // Access the views from the inflated dialog layout
         val menuButton: FloatingActionButton? = dialog.findViewById(R.id.menuButton)
+
         menuButton?.setOnClickListener {
             dialog.dismiss()
             showMenuBottomDialog()
         }
+
     }
-
-
-
 
 
     private fun showMenuBottomDialog() {
@@ -670,7 +688,7 @@ class MainActivity : AppCompatActivity() {
         dialog.show()
     }
 
-    private fun showReportMenuDialog() {
+    fun showReportMenuDialog() {
         val dialog = createDialog(R.layout.report_hazard)
 
         // Top buttons
