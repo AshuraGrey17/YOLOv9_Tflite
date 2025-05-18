@@ -75,8 +75,6 @@ class MainActivity : AppCompatActivity() {
     private var detector: Detector? = null
     private var reportImageView: ImageView? = null
     private var profileImageView: ImageView? = null
-
-
     private lateinit var fusedLocationClient: FusedLocationProviderClient
     private val LAT_KEY = "Latitude"
     private val LON_KEY = "Longitude"
