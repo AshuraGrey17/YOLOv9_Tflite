@@ -2,12 +2,16 @@ package com.surendramaran.yolov9tflite
 
 import android.Manifest
 import android.app.Dialog
+import android.content.SharedPreferences
 import android.content.pm.PackageManager
 import android.content.res.ColorStateList
 import android.graphics.Bitmap
+import android.graphics.BitmapFactory
 import android.graphics.Color
 import android.graphics.Matrix
+import android.graphics.drawable.BitmapDrawable
 import android.graphics.drawable.ColorDrawable
+import android.location.Geocoder
 import android.net.Uri
 import android.os.Bundle
 import android.util.Log
@@ -53,13 +57,24 @@ import android.widget.ToggleButton
 import com.google.android.material.bottomsheet.BottomSheetDialog
 import org.osmdroid.util.GeoPoint
 import org.osmdroid.views.MapView
+import com.google.android.gms.location.FusedLocationProviderClient
+import com.google.android.gms.location.LocationServices
+import android.location.Location
+import android.widget.SearchView
+import com.google.firebase.firestore.FirebaseFirestore
+import com.google.firebase.storage.FirebaseStorage
+import com.bumptech.glide.Glide
+import java.io.ByteArrayOutputStream
+import java.io.File
+import java.io.FileOutputStream
+import java.util.Date
+import java.util.Locale
 
 
 class MainActivity : AppCompatActivity() {
 
     private lateinit var binding: ActivityMainBinding
     private val isFrontCamera = false
-
     private var preview: Preview? = null
     private var imageAnalyzer: ImageAnalysis? = null
     private var camera: Camera? = null
@@ -68,12 +83,31 @@ class MainActivity : AppCompatActivity() {
     private var detector: Detector? = null
     private var reportImageView: ImageView? = null
     private var profileImageView: ImageView? = null
-
+    private lateinit var fusedLocationClient: FusedLocationProviderClient
+    private val LAT_KEY = "Latitude"
+    private val LON_KEY = "Longitude"
+    private var selectedReportBitmap: Bitmap? = null
     private lateinit var cameraExecutor: ExecutorService
+    private lateinit var sharedPreferences: SharedPreferences
+    private val PREFERENCES_NAME = "AppPreferences"
+    private val ALERT_KEY = "AlertState"
+    private val NOTIFICATION_KEY = "NotificationState"
+    private val NIGHT_MODE_KEY = "NightModeState"
+    private val detectionRecords = mutableListOf<DetectionRecord>()
 
     // CardView and TextView for heads-up notification
     private lateinit var notificationBanner: CardView
     private lateinit var notificationText: TextView
+    private val locationPermissionLauncher =
+        registerForActivityResult(ActivityResultContracts.RequestPermission()) { isGranted ->
+            if (isGranted) {
+                Toast.makeText(this, "Location permission granted!", Toast.LENGTH_SHORT).show()
+
+            } else {
+                Toast.makeText(this, "Location permission denied.", Toast.LENGTH_SHORT).show()
+            }
+        }
+
 
     // Enum class for severity levels
     enum class Severity(val color: Int) {
@@ -85,6 +119,22 @@ class MainActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         binding = ActivityMainBinding.inflate(layoutInflater)
+        sharedPreferences = getSharedPreferences(PREFERENCES_NAME, MODE_PRIVATE)
+        fusedLocationClient = LocationServices.getFusedLocationProviderClient(this)
+
+        if (ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION)
+            == PackageManager.PERMISSION_GRANTED) {
+
+            fusedLocationClient.lastLocation.addOnSuccessListener { location: Location? ->
+                location?.let {
+                    // Save exact location
+                    sharedPreferences.edit()
+                        .putFloat(LAT_KEY, it.latitude.toFloat())
+                        .putFloat(LON_KEY, it.longitude.toFloat())
+                        .apply()
+                }
+            }
+        }
 
         enableEdgeToEdge()
         setContentView(binding.root)
@@ -93,8 +143,7 @@ class MainActivity : AppCompatActivity() {
             v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom)
             insets
         }
-        val fab = findViewById<FloatingActionButton>(R.id.fab)
-        fab.setOnClickListener {
+        binding.fab.setOnClickListener {
             val dialog = BottomSheetDialog(this)
             val view = layoutInflater.inflate(R.layout.bottomsheetlayout, null)
             dialog.setContentView(view)
@@ -103,21 +152,33 @@ class MainActivity : AppCompatActivity() {
 
             dialog.setOnShowListener {
                 mapView.postDelayed({
-                    val point = GeoPoint(14.5995, 120.9842)
-                    mapView.controller.setZoom(16.0)
-                    mapView.controller.setCenter(point)
-                    Log.d("MapFix", "🌏 Forced center to Manila: $point")
+                    if (ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION)
+                        == PackageManager.PERMISSION_GRANTED) {
+                        MapManager.setupMap(this, mapView, 14.5995, 120.9842, detectionRecords)
+                    } else {
+                        Toast.makeText(this, "Location permission not granted.", Toast.LENGTH_SHORT).show()
+                    }
                 }, 500)
             }
 
             dialog.show()
         }
+
         cameraExecutor = Executors.newSingleThreadExecutor()
 
         cameraExecutor.execute {
             detector = Detector(baseContext, MODEL_PATH, LABELS_PATH, this) {
                 toast(it)
             }
+        }
+
+        if (ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION)
+            != PackageManager.PERMISSION_GRANTED) {
+            ActivityCompat.requestPermissions(
+                this,
+                arrayOf(Manifest.permission.ACCESS_FINE_LOCATION),
+                1
+            )
         }
 
         if (allPermissionsGranted()) {
@@ -139,11 +200,26 @@ class MainActivity : AppCompatActivity() {
         // Floating Action Button for showing bottom dialog
         binding.fab.setOnClickListener { showBottomDialog() }
     }
+
     private val imagePickerLauncher = registerForActivityResult(
         ActivityResultContracts.GetContent()
     ) { uri: Uri? ->
-        uri?.let { reportImageView?.setImageURI(it) }
+        uri?.let {
+            reportImageView?.setImageURI(it)
+
+            try {
+                val inputStream = contentResolver.openInputStream(it)
+                selectedReportBitmap = BitmapFactory.decodeStream(inputStream)
+                inputStream?.close()
+
+                // ✅ Add this log line
+                Log.d("ImagePicker", "Bitmap set? ${selectedReportBitmap != null}")
+            } catch (e: Exception) {
+                Log.e("ImagePicker", "Failed to decode bitmap: ${e.message}", e)
+            }
+        }
     }
+
 
     private val profileImagePickerLauncher = registerForActivityResult(
         ActivityResultContracts.GetContent()
@@ -157,6 +233,14 @@ class MainActivity : AppCompatActivity() {
             cameraProvider = cameraProviderFuture.get()
             bindCameraUseCases()
         }, ContextCompat.getMainExecutor(this))
+    }
+    private fun saveBitmapToCache(bitmap: Bitmap, filename: String): String {
+        val file = File(cacheDir, filename)
+        val outputStream = FileOutputStream(file)
+        bitmap.compress(Bitmap.CompressFormat.PNG, 100, outputStream)
+        outputStream.flush()
+        outputStream.close()
+        return file.absolutePath
     }
 
     private fun bindCameraUseCases() {
@@ -194,7 +278,7 @@ class MainActivity : AppCompatActivity() {
             }
 
             val rotatedBitmap = Bitmap.createBitmap(bitmapBuffer, 0, 0, bitmapBuffer.width, bitmapBuffer.height, matrix, true)
-            detector?.detect(rotatedBitmap)
+            onDetectWithBitmap(rotatedBitmap)
         }
 
         cameraProvider.unbindAll()
@@ -207,8 +291,52 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
+
     private fun allPermissionsGranted() = REQUIRED_PERMISSIONS.all {
         ContextCompat.checkSelfPermission(baseContext, it) == PackageManager.PERMISSION_GRANTED
+    }
+    private fun onDetectWithBitmap(rotatedBitmap: Bitmap) {
+        detector?.detect(rotatedBitmap) // Still perform detection
+
+        // Store rotatedBitmap for later use
+        // We'll grab the latest result inside detector (or fake it for now)
+        // For prototype, just save image and timestamp
+        val timestamp = System.currentTimeMillis()
+        val imagePath = saveBitmapToCache(rotatedBitmap, "detection_$timestamp.png")
+
+// Try to fetch the most recent location
+        if (ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION)
+            == PackageManager.PERMISSION_GRANTED) {
+
+            fusedLocationClient.lastLocation.addOnSuccessListener { location ->
+                val latitude = location?.latitude ?: 0.0
+                val longitude = location?.longitude ?: 0.0
+
+                val record = DetectionRecord(
+                    anomalyType = "Unknown", // Will be updated later in onDetect()
+                    imagePath = imagePath,
+                    latitude = latitude,
+                    longitude = longitude,
+                    timestamp = timestamp
+                )
+
+                detectionRecords.add(record)
+                Log.d("DetectionLog", "📍 Detection saved with location: $latitude, $longitude")
+            }
+
+        } else {
+            // If permission not granted, still save the detection with default location
+            val record = DetectionRecord(
+                anomalyType = "Unknown",
+                imagePath = imagePath,
+                latitude = 0.0,
+                longitude = 0.0,
+                timestamp = timestamp
+            )
+
+            detectionRecords.add(record)
+            Log.w("DetectionLog", "⚠️ Location not available — detection saved without GPS")
+        }
     }
 
     private val requestPermissionLauncher = registerForActivityResult(ActivityResultContracts.RequestMultiplePermissions()) {
@@ -300,11 +428,16 @@ class MainActivity : AppCompatActivity() {
     fun onEmptyDetect() {
         runOnUiThread {
             hideNotification()
+            binding.overlay.apply {
+                setResults(emptyList()) // Clear bounding boxes
+                invalidate() // Redraw overlay
+            }
         }
     }
 
+
     private fun showNotification(detection: String) {
-        Log.d("Notification", "isNotificationEnabled = $isNotificationEnabled") // Debugging log
+        Log.d("Notification", "isNotificationEnabled = $isNotificationEnabled")
 
         if (!isNotificationEnabled) {
             Log.d("Notification", "Notification blocked because isNotificationEnabled = false")
@@ -318,11 +451,19 @@ class MainActivity : AppCompatActivity() {
         notificationText.text = detection
         notificationBanner.visibility = View.VISIBLE
         notificationBanner.animate().translationY(0f).setDuration(300).start()
+
     }
 
     private fun hideNotification() {
-        notificationBanner.visibility = View.GONE
+        notificationBanner.animate()
+            .translationY(-200f)
+            .setDuration(300)
+            .withEndAction {
+                notificationBanner.visibility = View.GONE
+            }
+            .start()
     }
+
 
     private fun toast(message: String) {
         lifecycleScope.launch(Dispatchers.Main) {
@@ -330,32 +471,58 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-    // LayoutActivity methods for dialog management
     private fun showBottomDialog() {
         val dialog = createDialog(R.layout.bottomsheetlayout)
         dialog.show()
-        val mapView = dialog.findViewById<MapView>(R.id.map)
-        MapManager.setupMap(this, mapView, 14.5995, 120.9842) // Use your desired lat/lon
-        // Access the views from the inflated dialog layout
-        val menuButton: FloatingActionButton? = dialog.findViewById(R.id.menuButton)
 
+        val mapView = dialog.findViewById<MapView>(R.id.map)
+        val searchView = dialog.findViewById<SearchView>(R.id.searchView)
+        val lat = sharedPreferences.getFloat(LAT_KEY, 14.5995f) // Default to Manila
+        val lon = sharedPreferences.getFloat(LON_KEY, 120.9842f)
+
+        // Set initial user location
+        MapManager.setupMap(this, mapView, lat.toDouble(), lon.toDouble(), detectionRecords)
+
+        // Handle search input
+        searchView?.setOnQueryTextListener(object : SearchView.OnQueryTextListener {
+            override fun onQueryTextSubmit(query: String?): Boolean {
+                if (!query.isNullOrEmpty()) {
+                    MapManager.searchLocation(this@MainActivity, mapView, query, detectionRecords)
+                }
+                return true
+            }
+
+            override fun onQueryTextChange(newText: String?): Boolean {
+                if (newText.isNullOrEmpty() && MapManager.isSearchActive()) {
+                    MapManager.resetToUserLocation(this@MainActivity, mapView, detectionRecords)
+                    MapManager.clearSearchState()
+                }
+                return true
+            }
+        })
+
+        val menuButton: FloatingActionButton? = dialog.findViewById(R.id.menuButton)
         menuButton?.setOnClickListener {
             dialog.dismiss()
             showMenuBottomDialog()
         }
-
     }
+
 
 
     private fun showMenuBottomDialog() {
         val dialog = createDialog(R.layout.bottomsheet_menu)
         val isGpuToggle: ToggleButton = dialog.findViewById(R.id.isGpu)
-
+        val helpButton: ImageView? = dialog.findViewById(R.id.HelpButton)
         val settingsLayout: LinearLayout? = dialog.findViewById(R.id.layoutSettings)
         val profileLayout: LinearLayout? = dialog.findViewById(R.id.layoutProfile)
         val reportLayout: LinearLayout? = dialog.findViewById(R.id.layoutReport)
         val cancelMenuButton: ImageView? = dialog.findViewById(R.id.cancelMenuButton)
 
+        helpButton?.setOnClickListener {
+            dialog.dismiss()
+            showHelpdialog()
+        }
         settingsLayout?.setOnClickListener {
             dialog.dismiss()
             showSettingsMenuDialog()
@@ -392,11 +559,48 @@ class MainActivity : AppCompatActivity() {
     }
 
 
+    private fun loadSwitchStates(
+        alertSwitch: Switch,
+        notificationSwitch: Switch,
+
+    ) {
+        val alertEnabled = sharedPreferences.getBoolean(ALERT_KEY, false)
+        val notificationsEnabled = sharedPreferences.getBoolean(NOTIFICATION_KEY, true)
+
+
+        alertSwitch.isChecked = alertEnabled
+        notificationSwitch.isChecked = notificationsEnabled
+
+
+        isNotificationEnabled = notificationsEnabled // Make sure the flag is set correctly
+
+    }
+
+
     private fun showSettingsMenuDialog() {
         val dialog = createDialog(R.layout.settings)
         val backButton: ImageView? = dialog.findViewById(R.id.Backbutton)
         val alertModeLayout: LinearLayout? = dialog.findViewById(R.id.layoutAlertMode)
         val cancelMenuButton: ImageView? = dialog.findViewById(R.id.cancelMenuButton)
+        val helpLayout: LinearLayout? = dialog.findViewById(R.id.layoutHelp)
+
+        val alertSwitch: Switch = dialog.findViewById(R.id.alertSwitch)
+        val notificationSwitch: Switch = dialog.findViewById(R.id.notificationSwitch)
+
+
+        // Call load states function
+        loadSwitchStates(alertSwitch, notificationSwitch)
+
+        // Set listeners as before, using the shared_preferences logic
+        alertSwitch.setOnCheckedChangeListener { _, isChecked ->
+            sharedPreferences.edit().putBoolean(ALERT_KEY, isChecked).apply()
+        }
+        notificationSwitch.setOnCheckedChangeListener { _, isChecked ->
+            isNotificationEnabled = isChecked
+            sharedPreferences.edit().putBoolean(NOTIFICATION_KEY, isChecked).apply()
+        }
+
+
 
         backButton?.setOnClickListener {
             dialog.dismiss()
@@ -406,16 +610,151 @@ class MainActivity : AppCompatActivity() {
             dialog.dismiss()
             showAlertModeDialog()
         }
+        helpLayout?.setOnClickListener {
+            dialog.dismiss()
+            showHelpdialog()
+        }
+        cancelMenuButton?.setOnClickListener { dialog.dismiss() }
 
+        dialog.show()
+    }
+    private fun showHelpdialog() {
+        val dialog = createDialog(R.layout.help)
+        val backButton: ImageView? = dialog.findViewById(R.id.Backbutton)
+        val cancelMenuButton: ImageView? = dialog.findViewById(R.id.cancelMenuButton)
+        val helpCamera: LinearLayout? = dialog.findViewById(R.id.HelpCameraLayout)
+        val helpreport: LinearLayout? = dialog.findViewById(R.id.HelpReportLayout)
+        val helpprofile: LinearLayout? = dialog.findViewById(R.id.HelpProfileLayout)
+        val helpsettings: LinearLayout? = dialog.findViewById(R.id.HelpSettingsLayout)
+
+        backButton?.setOnClickListener {
+            dialog.dismiss()
+            showBottomDialog() // Go back to main menu
+        }
+
+        helpCamera?.setOnClickListener {
+            dialog.dismiss()
+            showHelpCameraActivity()
+        }
+
+        helpreport?.setOnClickListener {
+            dialog.dismiss()
+            showHelpReporthazard()
+        }
+
+        helpprofile?.setOnClickListener {
+            dialog.dismiss()
+            showHelpprofile()
+        }
+
+        helpsettings?.setOnClickListener {
+            dialog.dismiss()
+            showHelpsettings()
+        }
         cancelMenuButton?.setOnClickListener { dialog.dismiss() }
 
         dialog.show()
     }
 
+    private fun showHelpCameraActivity() {
+        val dialog = createDialog(R.layout.help_cameractivity)
+        val backButton: ImageView? = dialog.findViewById(R.id.Backbutton)
+        val cancelMenuButton: ImageView? = dialog.findViewById(R.id.cancelMenuButton)
+
+        backButton?.setOnClickListener {
+            dialog.dismiss()
+            showHelpdialog() // Go back to main menu
+        }
+        cancelMenuButton?.setOnClickListener { dialog.dismiss() }
+
+        dialog.show()
+    }
+
+    private fun showHelpsettings() {
+        val dialog = createDialog(R.layout.help_settings)
+        val backButton: ImageView? = dialog.findViewById(R.id.Backbutton)
+        val cancelMenuButton: ImageView? = dialog.findViewById(R.id.cancelMenuButton)
+
+        backButton?.setOnClickListener {
+            dialog.dismiss()
+            showHelpdialog() // Go back to main menu
+        }
+        cancelMenuButton?.setOnClickListener { dialog.dismiss() }
+
+        dialog.show()
+    }
+
+    private fun showHelpprofile() {
+        val dialog = createDialog(R.layout.help_profile)
+        val backButton: ImageView? = dialog.findViewById(R.id.Backbutton)
+        val cancelMenuButton: ImageView? = dialog.findViewById(R.id.cancelMenuButton)
+
+        backButton?.setOnClickListener {
+            dialog.dismiss()
+            showHelpdialog() // Go back to main menu
+        }
+        cancelMenuButton?.setOnClickListener { dialog.dismiss() }
+
+        dialog.show()
+    }
+
+    private fun showHelpReporthazard() {
+        val dialog = createDialog(R.layout.help_reporthazard)
+        val backButton: ImageView? = dialog.findViewById(R.id.Backbutton)
+        val cancelMenuButton: ImageView? = dialog.findViewById(R.id.cancelMenuButton)
+
+        backButton?.setOnClickListener {
+            dialog.dismiss()
+            showHelpdialog() // Go back to main menu
+        }
+        cancelMenuButton?.setOnClickListener { dialog.dismiss() }
+
+        dialog.show()
+    }
     private fun showAlertModeDialog() {
         val dialog = createDialog(R.layout.settings_alertmode)
         val backButton: ImageView? = dialog.findViewById(R.id.Backbutton)
         val cancelMenuButton: ImageView? = dialog.findViewById(R.id.cancelMenuButton)
+
+        val roadCrackCheckbox = dialog.findViewById<CheckBox>(R.id.RoadcrackCheckbox)
+        val roadPotholeCheckbox = dialog.findViewById<CheckBox>(R.id.RoadpotholeCheckbox)
+        val speedBumpCheckbox = dialog.findViewById<CheckBox>(R.id.SpeedbumpCheckbox)
+        val roadManholeCheckbox = dialog.findViewById<CheckBox>(R.id.RoadmanholeCheckbox)
+        val unfinishedPavementCheckbox = dialog.findViewById<CheckBox>(R.id.UnfinishedpavementCheckbox)
+        val puddlesCheckbox = dialog.findViewById<CheckBox>(R.id.puddlesCheckbox)
+        val detectButton = dialog.findViewById<Button>(R.id.detectButton)
+
+        // Load saved states from SharedPreferences
+        roadCrackCheckbox.isChecked = sharedPreferences.getBoolean("road_crack", false)
+        roadPotholeCheckbox.isChecked = sharedPreferences.getBoolean("road_pothole", false)
+        speedBumpCheckbox.isChecked = sharedPreferences.getBoolean("speed_bump", false)
+        roadManholeCheckbox.isChecked = sharedPreferences.getBoolean("road_manhole", false)
+        unfinishedPavementCheckbox.isChecked = sharedPreferences.getBoolean("unfinished_pavement", false)
+        puddlesCheckbox.isChecked = sharedPreferences.getBoolean("puddles", false)
+
+        detectButton.setOnClickListener {
+            val selectedClasses = mutableListOf<String>()
+            val editor = sharedPreferences.edit()
+
+            editor.putBoolean("road_crack", roadCrackCheckbox.isChecked)
+            editor.putBoolean("road_pothole", roadPotholeCheckbox.isChecked)
+            editor.putBoolean("speed_bump", speedBumpCheckbox.isChecked)
+            editor.putBoolean("road_manhole", roadManholeCheckbox.isChecked)
+            editor.putBoolean("unfinished_pavement", unfinishedPavementCheckbox.isChecked)
+            editor.putBoolean("puddles", puddlesCheckbox.isChecked)
+
+            if (roadCrackCheckbox.isChecked) selectedClasses.add("Road-cracks")
+            if (roadPotholeCheckbox.isChecked) selectedClasses.add("Potholes")
+            if (speedBumpCheckbox.isChecked) selectedClasses.add("Speed-bumps")
+            if (roadManholeCheckbox.isChecked) selectedClasses.add("Manholes")
+            if (unfinishedPavementCheckbox.isChecked) selectedClasses.add("Unfinished pavements")
+            if (puddlesCheckbox.isChecked) selectedClasses.add("Puddle")
+
+            editor.apply()
+
+            detector?.setTargetClasses(selectedClasses)
+            dialog.dismiss()
+        }
 
         backButton?.setOnClickListener {
             dialog.dismiss()
@@ -468,7 +807,7 @@ class MainActivity : AppCompatActivity() {
         dialog.show()
     }
 
-    private fun showReportMenuDialog() {
+    fun showReportMenuDialog() {
         val dialog = createDialog(R.layout.report_hazard)
 
         // Top buttons
@@ -482,10 +821,32 @@ class MainActivity : AppCompatActivity() {
         val timeText: TextView = dialog.findViewById(R.id.time)
         val dateText: TextView = dialog.findViewById(R.id.date)
 
-        // Image preview
-        val reportImage: ImageView = dialog.findViewById(R.id.reportImage)
-        reportImageView = reportImage // store reference for result callback
+        // ✅ Auto-fill location
+        val lat = sharedPreferences.getFloat(LAT_KEY, 14.5995f)
+        val lon = sharedPreferences.getFloat(LON_KEY, 120.9842f)
+        val geocoder = Geocoder(this, Locale.getDefault())
+        try {
+            val addresses = geocoder.getFromLocation(lat.toDouble(), lon.toDouble(), 1)
+            if (!addresses.isNullOrEmpty()) {
+                val address = addresses[0].getAddressLine(0)
+                locationText.text = address
+            } else {
+                locationText.text = "Unknown location (Lat: $lat, Lon: $lon)"
+            }
+        } catch (e: Exception) {
+            locationText.text = "Location unavailable"
+            Log.e("Geocoder", "Failed to get address: ${e.message}", e)
+        }
 
+        // ✅ Auto-fill date and time
+        val currentDate = java.text.SimpleDateFormat("MMMM dd yyyy", Locale.getDefault()).format(Date())
+        val currentTime = java.text.SimpleDateFormat("hh:mm a", Locale.getDefault()).format(Date())
+        dateText.text = currentDate
+        timeText.text = currentTime
+
+        // Image picker
+        val reportImage: ImageView = dialog.findViewById(R.id.reportImage)
+        reportImageView = reportImage
         reportImage.setOnClickListener {
             imagePickerLauncher.launch("image/*")
         }
@@ -497,26 +858,66 @@ class MainActivity : AppCompatActivity() {
         val roadManholeCheckBox: CheckBox = dialog.findViewById(R.id.RoadmanholeCheckbox)
         val unfinishedPavementCheckBox: CheckBox = dialog.findViewById(R.id.UnfinishedpavementCheckbox)
 
-        // Set listeners
+        // Buttons
+        val reportButton: Button = dialog.findViewById(R.id.Reportbutton)
+        val viewHistoryButton: Button = dialog.findViewById(R.id.ViewhistoryButton) // ✅ New line
+
+        reportButton.setOnClickListener {
+            // ✅ Dynamically set hazard type from checkboxes
+            val selectedTypes = mutableListOf<String>()
+            if (roadCrackCheckBox.isChecked) selectedTypes.add("Road Crack")
+            if (roadPotholeCheckBox.isChecked) selectedTypes.add("Pothole")
+            if (speedBumpCheckBox.isChecked) selectedTypes.add("Speed Bump")
+            if (roadManholeCheckBox.isChecked) selectedTypes.add("Manhole")
+            if (unfinishedPavementCheckBox.isChecked) selectedTypes.add("Unfinished Pavement")
+
+            val hazardType = if (selectedTypes.isNotEmpty()) {
+                selectedTypes.joinToString(", ")
+            } else {
+                "Unknown"
+            }
+
+            hazardTypeText.text = hazardType
+
+            val location = locationText.text.toString()
+            val time = timeText.text.toString()
+            val date = dateText.text.toString()
+            val bitmap = selectedReportBitmap
+
+            if (bitmap == null) {
+                Toast.makeText(this, "Please select an image before reporting", Toast.LENGTH_SHORT).show()
+                return@setOnClickListener
+            }
+
+            dialog.dismiss()
+            showReportVerificationDialog(hazardType, location, time, date, bitmap)
+        }
+
+        // ✅ View History Button Action
+        viewHistoryButton.setOnClickListener {
+            dialog.dismiss()
+            showReportHistoryDialog()
+        }
+
+        // Back/cancel
         backButton.setOnClickListener {
             dialog.dismiss()
             showBottomDialog()
         }
-
-        cancelMenuButton.setOnClickListener {
-            dialog.dismiss()
-        }
-
-        val reportButton: Button = dialog.findViewById(R.id.Reportbutton)
-        reportButton.setOnClickListener {
-            dialog.dismiss()
-            showReportVerificationDialog()
-        }
+        cancelMenuButton.setOnClickListener { dialog.dismiss() }
 
         dialog.show()
     }
 
-    private fun showReportVerificationDialog() {
+
+
+    private fun showReportVerificationDialog(
+        hazardType: String,
+        location: String,
+        time: String,
+        date: String,
+        imageBitmap: Bitmap?
+    ) {
         val dialog = createDialog(R.layout.report_verification)
 
         // Top Buttons
@@ -529,9 +930,17 @@ class MainActivity : AppCompatActivity() {
         val locationText: TextView = dialog.findViewById(R.id.location)
         val timeText: TextView = dialog.findViewById(R.id.time)
         val dateText: TextView = dialog.findViewById(R.id.date)
-
-        // Image Preview
         val reportImage: ImageView = dialog.findViewById(R.id.reportImage)
+
+        // Fill in the data
+        roadTypeText.text = hazardType
+        locationText.text = location
+        timeText.text = time
+        dateText.text = date
+
+        imageBitmap?.let {
+            reportImage.setImageBitmap(it)
+        }
 
         // Action Buttons
         val checkButton: Button = dialog.findViewById(R.id.checkButton)
@@ -552,11 +961,11 @@ class MainActivity : AppCompatActivity() {
         }
 
         checkButton.setOnClickListener {
+            saveReportToFirebase(hazardType, location, date, time, imageBitmap)
             Toast.makeText(dialog.context, "Report Approved", Toast.LENGTH_SHORT).show()
             dialog.dismiss()
             showReportHistoryDialog()
         }
-
 
         denyButton.setOnClickListener {
             Toast.makeText(dialog.context, "Report Denied", Toast.LENGTH_SHORT).show()
@@ -567,40 +976,143 @@ class MainActivity : AppCompatActivity() {
         dialog.show()
     }
 
+    private fun saveReportToFirebase(
+        type: String,
+        location: String,
+        date: String,
+        time: String,
+        imageBitmap: Bitmap?
+    ) {
+        val db = FirebaseFirestore.getInstance()
+        val storage = FirebaseStorage.getInstance().reference
+        val reportId = db.collection("hazardReports").document().id
+
+        // 🪵 Debug log
+        Log.d("FirebaseUpload", "Bitmap is null? ${imageBitmap == null}")
+
+        val saveToFirestore: (String) -> Unit = { imageUrl ->
+            val reportData = mapOf(
+                "type" to type,
+                "location" to location,
+                "date" to date,
+                "time" to time,
+                "imageUrl" to imageUrl
+            )
+
+            db.collection("hazardReports").document(reportId)
+                .set(reportData)
+                .addOnSuccessListener {
+                    Toast.makeText(this, "Report saved!", Toast.LENGTH_SHORT).show()
+                    Log.d("FirebaseReport", "Report saved with ID: $reportId")
+                }
+                .addOnFailureListener {
+                    Toast.makeText(this, "Failed to save report", Toast.LENGTH_SHORT).show()
+                    Log.e("FirebaseReport", "Firestore write failed: ${it.message}", it)
+                }
+        }
+
+        if (imageBitmap != null) {
+            val baos = ByteArrayOutputStream()
+            imageBitmap.compress(Bitmap.CompressFormat.JPEG, 80, baos)
+            val imageData = baos.toByteArray()
+
+            Log.d("FirebaseUpload", "Image byte size: ${imageData.size}")
+
+            val imageRef = storage.child("report_images/$reportId.jpg")
+            Log.d("FirebaseUpload", "Starting upload to report_images/$reportId.jpg")
+
+            val uploadTask = imageRef.putBytes(imageData)
+            uploadTask
+                .addOnSuccessListener {
+                    Log.d("FirebaseUpload", "Image upload succeeded")
+                    imageRef.downloadUrl
+                        .addOnSuccessListener { uri ->
+                            Log.d("FirebaseUpload", "Download URL obtained: $uri")
+                            saveToFirestore(uri.toString())
+                        }
+                        .addOnFailureListener {
+                            Log.e("FirebaseUpload", "Failed to get image URL: ${it.message}", it)
+                            saveToFirestore("")
+                        }
+                }
+                .addOnFailureListener {
+                    Log.e("FirebaseUpload", "Image upload failed: ${it.message}", it)
+                    Toast.makeText(this, "Image upload failed", Toast.LENGTH_SHORT).show()
+                    saveToFirestore("")
+                }
+        } else {
+            Toast.makeText(this, "No image selected to upload", Toast.LENGTH_SHORT).show()
+            saveToFirestore("")
+        }
+    }
+
+
     private fun showReportHistoryDialog() {
         val dialog = createDialog(R.layout.report_history)
 
-        // Top buttons
         val backButton: ImageView = dialog.findViewById(R.id.Backbutton)
         val cancelMenuButton: ImageView = dialog.findViewById(R.id.cancelMenuButton)
         val topCenterButton: ImageView = dialog.findViewById(R.id.topCenterButton)
-
         val viewSuggestedButton: Button = dialog.findViewById(R.id.viewSuggestedButton)
+        val historyContainer = dialog.findViewById<LinearLayout>(R.id.historyContainer)
 
-        backButton.setOnClickListener {
-            dialog.dismiss()
-            showReportVerificationDialog() // go back to verification screen if needed
-        }
+        val db = FirebaseFirestore.getInstance()
+        db.collection("hazardReports")
+            .addSnapshotListener { snapshots, e ->
+                if (e != null) {
+                    Toast.makeText(this, "Error loading history", Toast.LENGTH_SHORT).show()
+                    Log.e("FirebaseHistory", "Listen failed.", e)
+                    return@addSnapshotListener
+                }
 
-        cancelMenuButton.setOnClickListener {
-            dialog.dismiss()
-        }
+                historyContainer.removeAllViews()
 
-        topCenterButton.setOnClickListener {
-            dialog.dismiss()
-        }
+                if (snapshots != null && !snapshots.isEmpty) {
+                    for (document in snapshots) {
+                        val view = layoutInflater.inflate(R.layout.report_history_item, historyContainer, false)
 
+                        view.findViewById<TextView>(R.id.roadType).text = document.getString("type") ?: "Unknown"
+                        view.findViewById<TextView>(R.id.date).text = document.getString("date") ?: "-"
+                        view.findViewById<TextView>(R.id.timeText).text = document.getString("time") ?: "-" // Replace "severity" with time
+                        view.findViewById<TextView>(R.id.location).text = document.getString("location") ?: "-"
+
+
+                        val imageUrl = document.getString("imageUrl")
+                        val imageView = view.findViewById<ImageView>(R.id.reportImage)
+                        if (!imageUrl.isNullOrEmpty()) {
+                            Glide.with(this).load(imageUrl).into(imageView)
+                        }
+
+                        historyContainer.addView(view)
+                    }
+                } else {
+                    val emptyText = TextView(this).apply {
+                        text = "No reports available"
+                        setPadding(32, 32, 32, 32)
+                        textSize = 16f
+                    }
+                    historyContainer.addView(emptyText)
+                }
+            }
+
+        backButton.setOnClickListener { dialog.dismiss() }
+        cancelMenuButton.setOnClickListener { dialog.dismiss() }
+        topCenterButton.setOnClickListener { dialog.dismiss() }
         viewSuggestedButton.setOnClickListener {
             Toast.makeText(dialog.context, "Viewing Suggested Reports", Toast.LENGTH_SHORT).show()
-            // add logic here if needed
         }
 
         dialog.show()
     }
+
+
+
     fun Alertswitch(view: View) {
         val switch = view as Switch
         val isChecked = switch.isChecked
         Toast.makeText(this, if (isChecked) "Alerts Enabled" else "Alerts Disabled", Toast.LENGTH_SHORT).show()
+        // Save state to SharedPreferences
+        sharedPreferences.edit().putBoolean(ALERT_KEY, isChecked).apply()
     }
 
     fun Notificationsswitch(view: View) {
@@ -616,7 +1128,8 @@ class MainActivity : AppCompatActivity() {
             if (isNotificationEnabled) "Notifications Enabled" else "Notifications Disabled",
             Toast.LENGTH_SHORT
         ).show()
-
+        // Save state to SharedPreferences
+        sharedPreferences.edit().putBoolean(NOTIFICATION_KEY, isNotificationEnabled).apply()
         Log.d("NotificationSwitch", "isNotificationEnabled = $isNotificationEnabled") // Debugging log
     }
 

@@ -53,213 +53,146 @@
             android:id="@+id/menuTitle"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Settings"
+            android:text="Settings Guide"
             android:textSize="18sp"
             android:textStyle="bold"
             android:textColor="#000000" />
 
     </LinearLayout>
 
-    <!-- ✅ Alert Toggle -->
+    <!-- ✅ Bullet Guide -->
     <LinearLayout
-        android:id="@+id/layoutAlerts"
         android:orientation="horizontal"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:padding="10dp"
         android:gravity="center_vertical">
 
-        <ImageView
-            android:layout_width="40dp"
-            android:layout_height="40dp"
-            android:scaleType="fitCenter"
-            android:src="@drawable/alert" />
-
         <TextView
             android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:text="Alert"
+            android:text="1.Road Cracks: Check to enable detection and alerts for road cracks"
             android:textColor="@color/black"
             android:layout_marginStart="16dp"
             android:textSize="16sp"
             android:layout_weight="1" />
 
-        <Switch
-            android:theme="@style/CustomSwitchStyle"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:onClick="Alertswitch" />
     </LinearLayout>
 
-    <!-- ✅ Alert Mode -->
     <LinearLayout
         android:layout_marginTop="8dp"
-        android:id="@+id/layoutAlertMode"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:padding="10dp"
         android:gravity="center_vertical"
         android:orientation="horizontal">
 
-        <ImageView
-            android:layout_width="40dp"
-            android:layout_height="40dp"
-            android:scaleType="fitCenter"
-            android:src="@drawable/mode" />
+        <TextView
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="16dp"
+            android:layout_weight="1"
+            android:text="2.Road Potholes: Check to enable detection and alerts for potholes."
+            android:textColor="@color/black"
+            android:textSize="16sp" />
+
+    </LinearLayout>
+
+    <LinearLayout
+        android:layout_marginTop="8dp"
+        android:orientation="horizontal"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:padding="10dp"
+        android:gravity="center_vertical">
+
+        <TextView
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:text="3.Speed Bump: Check to enable detection and alerts for speed bumps"
+            android:textColor="@color/black"
+            android:layout_marginStart="16dp"
+            android:textSize="16sp"
+            android:layout_weight="1" />
+
+    </LinearLayout>
+
+    <LinearLayout
+        android:layout_marginTop="8dp"
+
+        android:orientation="horizontal"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:padding="10dp"
+        android:gravity="center_vertical">
 
         <TextView
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_marginStart="16dp"
             android:layout_weight="1"
-            android:text="Alert Mode"
+            android:text="4.Road Manhole: Check to enable detection and alerts for road manholes."
             android:textColor="@color/black"
             android:textSize="16sp" />
 
-        <ImageView
-            android:id="@+id/AlertmodeButton"
-            android:layout_width="40dp"
-            android:layout_height="30dp"
-            android:scaleType="fitCenter"
-            android:src="@drawable/right_arrow"
-            android:layout_gravity="end"
-            android:layout_centerVertical="true"/>
-
     </LinearLayout>
 
-    <!-- ✅ Notification Toggle -->
     <LinearLayout
         android:layout_marginTop="8dp"
-        android:id="@+id/layoutNotification"
+
         android:orientation="horizontal"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:padding="10dp"
         android:gravity="center_vertical">
-
-        <ImageView
-            android:layout_width="40dp"
-            android:layout_height="40dp"
-            android:scaleType="fitCenter"
-            android:src="@drawable/notification" />
-
-        <TextView
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:text="Notification:"
-            android:textColor="@color/black"
-            android:layout_marginStart="16dp"
-            android:textSize="16sp"
-            android:layout_weight="1" />
-
-        <Switch
-            android:theme="@style/CustomSwitchStyle"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:onClick="Notificationsswitch" />
-    </LinearLayout>
-
-    <LinearLayout
-        android:layout_marginTop="8dp"
-        android:id="@+id/layoutHelp"
-        android:orientation="horizontal"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:padding="10dp"
-        android:gravity="center_vertical">
-
-        <ImageView
-            android:layout_width="40dp"
-            android:layout_height="40dp"
-            android:scaleType="fitCenter"
-            android:src="@drawable/help" />
 
         <TextView
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_marginStart="16dp"
             android:layout_weight="1"
-            android:text="Help"
+            android:text="5.Unfinished Pavements: Check to enable detection and alerts for unfinished road surfaces."
             android:textColor="@color/black"
             android:textSize="16sp" />
 
-        <ImageView
-            android:id="@+id/HelpButton"
-            android:layout_width="40dp"
-            android:layout_height="30dp"
-            android:scaleType="fitCenter"
-            android:src="@drawable/right_arrow"
-            android:layout_centerVertical="true" />
-
     </LinearLayout>
-
-    <!-- ✅ Reset -->
     <LinearLayout
         android:layout_marginTop="8dp"
-        android:id="@+id/layoutReset"
         android:orientation="horizontal"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:padding="10dp"
         android:gravity="center_vertical">
 
-        <ImageView
-            android:layout_width="40dp"
-            android:layout_height="40dp"
-            android:scaleType="fitCenter"
-            android:src="@drawable/reset" />
-
         <TextView
             android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:text="Reset"
-            android:textColor="@color/black"
             android:layout_marginStart="16dp"
-            android:textSize="16sp"
-            android:layout_weight="1" />
+            android:layout_weight="1"
+            android:text="6.Puddles: Check to enable detection and alerts for puddles."
+            android:textColor="@color/black"
+            android:textSize="16sp" />
 
-        <ImageView
-            android:id="@+id/ResetButton"
-            android:layout_width="40dp"
-            android:layout_height="30dp"
-            android:scaleType="fitCenter"
-            android:src="@drawable/right_arrow"
-            android:layout_centerVertical="true" />
     </LinearLayout>
 
-    <!-- ✅ External Camera Option -->
     <LinearLayout
         android:layout_marginTop="8dp"
-        android:id="@+id/layoutExternalCamera"
         android:orientation="horizontal"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:padding="10dp"
         android:gravity="center_vertical">
 
-        <ImageView
-            android:layout_width="40dp"
-            android:layout_height="40dp"
-            android:scaleType="fitCenter"
-            android:src="@drawable/camera" />
-
         <TextView
             android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:text="Choose External Camera"
-            android:textColor="@color/black"
             android:layout_marginStart="16dp"
-            android:textSize="16sp"
-            android:layout_weight="1" />
+            android:layout_weight="1"
+            android:text="7.Detect: Tap to save your selections and start monitoring for the chosen road irregularities."
+            android:textColor="@color/black"
+            android:textSize="16sp" />
 
-        <ImageView
-            android:id="@+id/ChooseExternalCameraButton"
-            android:layout_width="40dp"
-            android:layout_height="30dp"
-            android:scaleType="fitCenter"
-            android:src="@drawable/right_arrow"
-            android:layout_gravity="end"
-            android:layout_centerVertical="true" />
     </LinearLayout>
+
 
 </LinearLayout>
