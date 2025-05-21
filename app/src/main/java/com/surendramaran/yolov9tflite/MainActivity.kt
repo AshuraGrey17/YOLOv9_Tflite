@@ -474,30 +474,55 @@ class MainActivity : AppCompatActivity() {
     private fun showBottomDialog() {
         val dialog = createDialog(R.layout.bottomsheetlayout)
         dialog.show()
-        val mapView = dialog.findViewById<MapView>(R.id.map)
-        val lat = sharedPreferences.getFloat(LAT_KEY, 14.5995f) // Default to Manila if not set
-        val lon = sharedPreferences.getFloat(LON_KEY, 120.9842f)
-        MapManager.setupMap(this, mapView, lat.toDouble(), lon.toDouble(), detectionRecords)
-        // Access the views from the inflated dialog layout
-        val menuButton: FloatingActionButton? = dialog.findViewById(R.id.menuButton)
 
+        val mapView = dialog.findViewById<MapView>(R.id.map)
+        val searchView = dialog.findViewById<SearchView>(R.id.searchView)
+        val lat = sharedPreferences.getFloat(LAT_KEY, 14.5995f) // Default to Manila
+        val lon = sharedPreferences.getFloat(LON_KEY, 120.9842f)
+
+        // Set initial user location
+        MapManager.setupMap(this, mapView, lat.toDouble(), lon.toDouble(), detectionRecords)
+
+        // Handle search input
+        searchView?.setOnQueryTextListener(object : SearchView.OnQueryTextListener {
+            override fun onQueryTextSubmit(query: String?): Boolean {
+                if (!query.isNullOrEmpty()) {
+                    MapManager.searchLocation(this@MainActivity, mapView, query, detectionRecords)
+                }
+                return true
+            }
+
+            override fun onQueryTextChange(newText: String?): Boolean {
+                if (newText.isNullOrEmpty() && MapManager.isSearchActive()) {
+                    MapManager.resetToUserLocation(this@MainActivity, mapView, detectionRecords)
+                    MapManager.clearSearchState()
+                }
+                return true
+            }
+        })
+
+        val menuButton: FloatingActionButton? = dialog.findViewById(R.id.menuButton)
         menuButton?.setOnClickListener {
             dialog.dismiss()
             showMenuBottomDialog()
         }
-
     }
+
 
 
     private fun showMenuBottomDialog() {
         val dialog = createDialog(R.layout.bottomsheet_menu)
         val isGpuToggle: ToggleButton = dialog.findViewById(R.id.isGpu)
-
+        val helpButton: ImageView? = dialog.findViewById(R.id.HelpButton)
         val settingsLayout: LinearLayout? = dialog.findViewById(R.id.layoutSettings)
         val profileLayout: LinearLayout? = dialog.findViewById(R.id.layoutProfile)
         val reportLayout: LinearLayout? = dialog.findViewById(R.id.layoutReport)
         val cancelMenuButton: ImageView? = dialog.findViewById(R.id.cancelMenuButton)
 
+        helpButton?.setOnClickListener {
+            dialog.dismiss()
+            showHelpdialog()
+        }
         settingsLayout?.setOnClickListener {
             dialog.dismiss()
             showSettingsMenuDialog()
@@ -533,18 +558,19 @@ class MainActivity : AppCompatActivity() {
         dialog.show()
     }
 
+
     private fun loadSwitchStates(
         alertSwitch: Switch,
         notificationSwitch: Switch,
-        nightModeSwitch: Switch
+
     ) {
         val alertEnabled = sharedPreferences.getBoolean(ALERT_KEY, false)
         val notificationsEnabled = sharedPreferences.getBoolean(NOTIFICATION_KEY, true)
-        val nightModeEnabled = sharedPreferences.getBoolean(NIGHT_MODE_KEY, false)
+
 
         alertSwitch.isChecked = alertEnabled
         notificationSwitch.isChecked = notificationsEnabled
-        nightModeSwitch.isChecked = nightModeEnabled
+
 
         isNotificationEnabled = notificationsEnabled // Make sure the flag is set correctly
 
@@ -556,13 +582,14 @@ class MainActivity : AppCompatActivity() {
         val backButton: ImageView? = dialog.findViewById(R.id.Backbutton)
         val alertModeLayout: LinearLayout? = dialog.findViewById(R.id.layoutAlertMode)
         val cancelMenuButton: ImageView? = dialog.findViewById(R.id.cancelMenuButton)
+        val helpLayout: LinearLayout? = dialog.findViewById(R.id.layoutHelp)
 
         val alertSwitch: Switch = dialog.findViewById(R.id.alertSwitch)
         val notificationSwitch: Switch = dialog.findViewById(R.id.notificationSwitch)
-        val nightModeSwitch: Switch = dialog.findViewById(R.id.nightModeSwitch)
+
 
         // Call load states function
-        loadSwitchStates(alertSwitch, notificationSwitch, nightModeSwitch)
+        loadSwitchStates(alertSwitch, notificationSwitch)
 
         // Set listeners as before, using the shared_preferences logic
         alertSwitch.setOnCheckedChangeListener { _, isChecked ->
@@ -572,11 +599,8 @@ class MainActivity : AppCompatActivity() {
             isNotificationEnabled = isChecked
             sharedPreferences.edit().putBoolean(NOTIFICATION_KEY, isChecked).apply()
         }
-        nightModeSwitch.setOnCheckedChangeListener { _, isChecked ->
-            sharedPreferences.edit().putBoolean(NIGHT_MODE_KEY, isChecked).apply()
 
 
-        }
 
         backButton?.setOnClickListener {
             dialog.dismiss()
@@ -586,12 +610,107 @@ class MainActivity : AppCompatActivity() {
             dialog.dismiss()
             showAlertModeDialog()
         }
+        helpLayout?.setOnClickListener {
+            dialog.dismiss()
+            showHelpdialog()
+        }
+        cancelMenuButton?.setOnClickListener { dialog.dismiss() }
 
+        dialog.show()
+    }
+    private fun showHelpdialog() {
+        val dialog = createDialog(R.layout.help)
+        val backButton: ImageView? = dialog.findViewById(R.id.Backbutton)
+        val cancelMenuButton: ImageView? = dialog.findViewById(R.id.cancelMenuButton)
+        val helpCamera: LinearLayout? = dialog.findViewById(R.id.HelpCameraLayout)
+        val helpreport: LinearLayout? = dialog.findViewById(R.id.HelpReportLayout)
+        val helpprofile: LinearLayout? = dialog.findViewById(R.id.HelpProfileLayout)
+        val helpsettings: LinearLayout? = dialog.findViewById(R.id.HelpSettingsLayout)
+
+        backButton?.setOnClickListener {
+            dialog.dismiss()
+            showBottomDialog() // Go back to main menu
+        }
+
+        helpCamera?.setOnClickListener {
+            dialog.dismiss()
+            showHelpCameraActivity()
+        }
+
+        helpreport?.setOnClickListener {
+            dialog.dismiss()
+            showHelpReporthazard()
+        }
+
+        helpprofile?.setOnClickListener {
+            dialog.dismiss()
+            showHelpprofile()
+        }
+
+        helpsettings?.setOnClickListener {
+            dialog.dismiss()
+            showHelpsettings()
+        }
         cancelMenuButton?.setOnClickListener { dialog.dismiss() }
 
         dialog.show()
     }
 
+    private fun showHelpCameraActivity() {
+        val dialog = createDialog(R.layout.help_cameractivity)
+        val backButton: ImageView? = dialog.findViewById(R.id.Backbutton)
+        val cancelMenuButton: ImageView? = dialog.findViewById(R.id.cancelMenuButton)
+
+        backButton?.setOnClickListener {
+            dialog.dismiss()
+            showHelpdialog() // Go back to main menu
+        }
+        cancelMenuButton?.setOnClickListener { dialog.dismiss() }
+
+        dialog.show()
+    }
+
+    private fun showHelpsettings() {
+        val dialog = createDialog(R.layout.help_settings)
+        val backButton: ImageView? = dialog.findViewById(R.id.Backbutton)
+        val cancelMenuButton: ImageView? = dialog.findViewById(R.id.cancelMenuButton)
+
+        backButton?.setOnClickListener {
+            dialog.dismiss()
+            showHelpdialog() // Go back to main menu
+        }
+        cancelMenuButton?.setOnClickListener { dialog.dismiss() }
+
+        dialog.show()
+    }
+
+    private fun showHelpprofile() {
+        val dialog = createDialog(R.layout.help_profile)
+        val backButton: ImageView? = dialog.findViewById(R.id.Backbutton)
+        val cancelMenuButton: ImageView? = dialog.findViewById(R.id.cancelMenuButton)
+
+        backButton?.setOnClickListener {
+            dialog.dismiss()
+            showHelpdialog() // Go back to main menu
+        }
+        cancelMenuButton?.setOnClickListener { dialog.dismiss() }
+
+        dialog.show()
+    }
+
+    private fun showHelpReporthazard() {
+        val dialog = createDialog(R.layout.help_reporthazard)
+        val backButton: ImageView? = dialog.findViewById(R.id.Backbutton)
+        val cancelMenuButton: ImageView? = dialog.findViewById(R.id.cancelMenuButton)
+
+        backButton?.setOnClickListener {
+            dialog.dismiss()
+            showHelpdialog() // Go back to main menu
+        }
+        cancelMenuButton?.setOnClickListener { dialog.dismiss() }
+
+        dialog.show()
+    }
     private fun showAlertModeDialog() {
         val dialog = createDialog(R.layout.settings_alertmode)
         val backButton: ImageView? = dialog.findViewById(R.id.Backbutton)
@@ -741,6 +860,8 @@ class MainActivity : AppCompatActivity() {
 
         // Buttons
         val reportButton: Button = dialog.findViewById(R.id.Reportbutton)
+        val viewHistoryButton: Button = dialog.findViewById(R.id.ViewhistoryButton) // ✅ New line
+
         reportButton.setOnClickListener {
             // ✅ Dynamically set hazard type from checkboxes
             val selectedTypes = mutableListOf<String>()
@@ -756,7 +877,7 @@ class MainActivity : AppCompatActivity() {
                 "Unknown"
             }
 
-            hazardTypeText.text = hazardType // ✅ Display the selected hazard type
+            hazardTypeText.text = hazardType
 
             val location = locationText.text.toString()
             val time = timeText.text.toString()
@@ -772,6 +893,12 @@ class MainActivity : AppCompatActivity() {
             showReportVerificationDialog(hazardType, location, time, date, bitmap)
         }
 
+        // ✅ View History Button Action
+        viewHistoryButton.setOnClickListener {
+            dialog.dismiss()
+            showReportHistoryDialog()
+        }
+
         // Back/cancel
         backButton.setOnClickListener {
             dialog.dismiss()
@@ -781,6 +908,7 @@ class MainActivity : AppCompatActivity() {
 
         dialog.show()
     }
+
 
 
     private fun showReportVerificationDialog(

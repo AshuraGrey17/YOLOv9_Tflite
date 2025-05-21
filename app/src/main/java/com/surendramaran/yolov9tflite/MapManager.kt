@@ -1,6 +1,7 @@
 package com.surendramaran.yolov9tflite
 
 import android.content.Context
+import android.location.Geocoder
 import android.util.Log
 import androidx.core.content.ContextCompat
 import org.osmdroid.config.Configuration
@@ -14,6 +15,9 @@ import java.text.SimpleDateFormat
 import java.util.*
 
 object MapManager {
+    private var isShowingSearchResult = false
+    private var userLocation: GeoPoint? = null
+
     fun setupMap(
         context: Context,
         mapView: MapView,
@@ -29,18 +33,22 @@ object MapManager {
         mapView.setTileSource(TileSourceFactory.MAPNIK)
         mapView.setMultiTouchControls(true)
 
-        val mapController = mapView.controller
         val geoPoint = GeoPoint(lat, lon)
+        if (!isShowingSearchResult) {
+            userLocation = geoPoint // Save user location only when not showing a search
+        }
+
+        val mapController = mapView.controller
         mapController.setZoom(15.0)
         mapController.setCenter(geoPoint)
 
         mapView.overlays.clear()
 
-        // Add current location marker
+        // Add current or searched location marker
         val centerMarker = Marker(mapView)
         centerMarker.position = geoPoint
         centerMarker.setAnchor(Marker.ANCHOR_CENTER, Marker.ANCHOR_BOTTOM)
-        centerMarker.title = "Searched Location"
+        centerMarker.title = if (isShowingSearchResult) "Searched Location" else "Your Location"
         mapView.overlays.add(centerMarker)
 
         // Add user location overlay
@@ -49,7 +57,7 @@ object MapManager {
         locationOverlay.enableFollowLocation()
         mapView.overlays.add(locationOverlay)
 
-        // Add markers from detection records
+        // Add detection markers
         for (record in records) {
             val marker = Marker(mapView)
             marker.position = GeoPoint(record.latitude, record.longitude)
@@ -74,5 +82,34 @@ object MapManager {
 
         mapView.invalidate()
         Log.d("MapManager", "✅ Map centered on: $lat, $lon with ${records.size} records")
+    }
+
+    fun searchLocation(context: Context, mapView: MapView, query: String, records: List<DetectionRecord>) {
+        try {
+            val geocoder = Geocoder(context)
+            val results = geocoder.getFromLocationName(query, 1)
+            if (!results.isNullOrEmpty()) {
+                val location = results[0]
+                isShowingSearchResult = true
+                setupMap(context, mapView, location.latitude, location.longitude, records)
+            } else {
+                Log.w("MapManager", "❌ No results found for '$query'")
+            }
+        } catch (e: Exception) {
+            Log.e("MapManager", "❌ Error during geocoding: ${e.message}", e)
+        }
+    }
+
+    fun resetToUserLocation(context: Context, mapView: MapView, records: List<DetectionRecord>) {
+        userLocation?.let {
+            isShowingSearchResult = false
+            setupMap(context, mapView, it.latitude, it.longitude, records)
+        }
+    }
+
+    fun isSearchActive(): Boolean = isShowingSearchResult
+
+    fun clearSearchState() {
+        isShowingSearchResult = false
     }
 }
