@@ -74,6 +74,7 @@ import java.util.Locale
 class MainActivity : AppCompatActivity() {
 
     private lateinit var binding: ActivityMainBinding
+    private lateinit var mapManager: MapManager
     private val isFrontCamera = false
     private var preview: Preview? = null
     private var imageAnalyzer: ImageAnalysis? = null
@@ -94,6 +95,8 @@ class MainActivity : AppCompatActivity() {
     private val NOTIFICATION_KEY = "NotificationState"
     private val NIGHT_MODE_KEY = "NightModeState"
     private val detectionRecords = mutableListOf<DetectionRecord>()
+    var selectedDetectionRecord: DetectionRecord? = null
+
 
     // CardView and TextView for heads-up notification
     private lateinit var notificationBanner: CardView
@@ -122,6 +125,7 @@ class MainActivity : AppCompatActivity() {
         sharedPreferences = getSharedPreferences(PREFERENCES_NAME, MODE_PRIVATE)
         fusedLocationClient = LocationServices.getFusedLocationProviderClient(this)
 
+
         if (ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION)
             == PackageManager.PERMISSION_GRANTED) {
 
@@ -135,6 +139,7 @@ class MainActivity : AppCompatActivity() {
                 }
             }
         }
+
 
         enableEdgeToEdge()
         setContentView(binding.root)
@@ -188,6 +193,7 @@ class MainActivity : AppCompatActivity() {
         }
 
 
+
         // Initialize notification components
         notificationBanner = findViewById(R.id.detectionNotificationCard)
         notificationText = findViewById(R.id.detectionNotificationText)
@@ -196,6 +202,7 @@ class MainActivity : AppCompatActivity() {
         notificationBanner.setOnClickListener {
             hideNotification()
         }
+
 
         // Floating Action Button for showing bottom dialog
         binding.fab.setOnClickListener { showBottomDialog() }
@@ -292,9 +299,13 @@ class MainActivity : AppCompatActivity() {
     }
 
 
+
+
+
     private fun allPermissionsGranted() = REQUIRED_PERMISSIONS.all {
         ContextCompat.checkSelfPermission(baseContext, it) == PackageManager.PERMISSION_GRANTED
     }
+
     private fun onDetectWithBitmap(rotatedBitmap: Bitmap) {
         detector?.detect(rotatedBitmap) // Still perform detection
 
@@ -470,6 +481,43 @@ class MainActivity : AppCompatActivity() {
             Toast.makeText(baseContext, message, Toast.LENGTH_LONG).show()
         }
     }
+    private fun loadReportedDetectionsFromFirebase(onComplete: () -> Unit) {
+        val db = FirebaseFirestore.getInstance()
+
+        db.collection("hazardReports")
+            .get()
+            .addOnSuccessListener { documents ->
+                for (doc in documents) {
+                    val type = doc.getString("type") ?: "Unknown"
+                    val address = doc.getString("location") ?: "" // ✅ Read address for display
+                    val lat = doc.getDouble("latitude") ?: 0.0    // ✅ Actual coordinates
+                    val lon = doc.getDouble("longitude") ?: 0.0
+                    val date = doc.getString("date") ?: ""
+                    val time = doc.getString("time") ?: ""
+                    val imageUrl = doc.getString("imageUrl") ?: ""
+                    val timestamp = System.currentTimeMillis() // Use for ordering
+
+                    val record = DetectionRecord(
+                        anomalyType = type,
+                        imagePath = imageUrl,     // May be empty if it's a local detection
+                        latitude = lat,
+                        longitude = lon,
+                        timestamp = timestamp,
+                        isReported = true         // These came from Firebase
+                    )
+
+                    detectionRecords.add(record)
+                }
+
+
+                onComplete()
+            }
+            .addOnFailureListener { e ->
+                Log.e("FirebaseLoad", "❌ Failed to load reports: ${e.message}", e)
+                onComplete()
+            }
+    }
+
 
     private fun showBottomDialog() {
         val dialog = createDialog(R.layout.bottomsheetlayout)
@@ -481,7 +529,10 @@ class MainActivity : AppCompatActivity() {
         val lon = sharedPreferences.getFloat(LON_KEY, 120.9842f)
 
         // Set initial user location
-        MapManager.setupMap(this, mapView, lat.toDouble(), lon.toDouble(), detectionRecords)
+        loadReportedDetectionsFromFirebase {
+            MapManager.setupMap(this, mapView, lat.toDouble(), lon.toDouble(), detectionRecords)
+        }
+
 
         // Handle search input
         searchView?.setOnQueryTextListener(object : SearchView.OnQueryTextListener {
@@ -507,8 +558,6 @@ class MainActivity : AppCompatActivity() {
             showMenuBottomDialog()
         }
     }
-
-
 
     private fun showMenuBottomDialog() {
         val dialog = createDialog(R.layout.bottomsheet_menu)
@@ -847,6 +896,18 @@ class MainActivity : AppCompatActivity() {
         // Image picker
         val reportImage: ImageView = dialog.findViewById(R.id.reportImage)
         reportImageView = reportImage
+        selectedDetectionRecord?.imagePath?.let { path ->
+            val imageFile = File(path)
+            if (imageFile.exists()) {
+                val bitmap = BitmapFactory.decodeFile(imageFile.absolutePath)
+                reportImage.setImageBitmap(bitmap)
+                selectedReportBitmap = bitmap
+                Log.d("AutoImageLoad", "✅ Loaded image from $path")
+            } else {
+                Log.w("AutoImageLoad", "⚠️ Image file does not exist at $path")
+            }
+        }
+
         reportImage.setOnClickListener {
             imagePickerLauncher.launch("image/*")
         }
@@ -987,13 +1048,20 @@ class MainActivity : AppCompatActivity() {
         val storage = FirebaseStorage.getInstance().reference
         val reportId = db.collection("hazardReports").document().id
 
-        // 🪵 Debug log
+        // Get lat/lon from selected detection
+        val lat = selectedDetectionRecord?.latitude ?: 0.0
+        val lon = selectedDetectionRecord?.longitude ?: 0.0
+        val geoPoint = com.google.firebase.firestore.GeoPoint(lat, lon)
+
         Log.d("FirebaseUpload", "Bitmap is null? ${imageBitmap == null}")
 
         val saveToFirestore: (String) -> Unit = { imageUrl ->
             val reportData = mapOf(
                 "type" to type,
                 "location" to location,
+                "latitude" to lat,
+                "longitude" to lon,
+                "locationPoint" to geoPoint,
                 "date" to date,
                 "time" to time,
                 "imageUrl" to imageUrl
@@ -1003,7 +1071,11 @@ class MainActivity : AppCompatActivity() {
                 .set(reportData)
                 .addOnSuccessListener {
                     Toast.makeText(this, "Report saved!", Toast.LENGTH_SHORT).show()
-                    Log.d("FirebaseReport", "Report saved with ID: $reportId")
+                    Log.d("FirebaseReport", "✅ Report saved with ID: $reportId")
+
+                    // Mark detection as reported
+                    selectedDetectionRecord?.isReported = true
+                    Log.d("ReportStatus", "✅ Detection marked as reported: ${selectedDetectionRecord?.anomalyType}")
                 }
                 .addOnFailureListener {
                     Toast.makeText(this, "Failed to save report", Toast.LENGTH_SHORT).show()
@@ -1045,6 +1117,7 @@ class MainActivity : AppCompatActivity() {
             saveToFirestore("")
         }
     }
+
 
 
     private fun showReportHistoryDialog() {
