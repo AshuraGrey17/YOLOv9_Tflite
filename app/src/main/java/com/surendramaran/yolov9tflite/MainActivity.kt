@@ -547,18 +547,15 @@ class MainActivity : AppCompatActivity() {
     private fun showBottomDialog() {
         val dialog = createDialog(R.layout.bottomsheetlayout)
         dialog.show()
-
         val mapView = dialog.findViewById<MapView>(R.id.map)
         val searchView = dialog.findViewById<SearchView>(R.id.searchView)
         val lat = sharedPreferences.getFloat(LAT_KEY, 14.5995f) // Default to Manila
         val lon = sharedPreferences.getFloat(LON_KEY, 120.9842f)
-
         // Set initial user location
+        MapManager.clearSearchState()  // 👈 Add this right before setupMap
         loadReportedDetectionsFromFirebase {
             MapManager.setupMap(this, mapView, lat.toDouble(), lon.toDouble(), detectionRecords)
         }
-
-
         // Handle search input
         searchView?.setOnQueryTextListener(object : SearchView.OnQueryTextListener {
             override fun onQueryTextSubmit(query: String?): Boolean {

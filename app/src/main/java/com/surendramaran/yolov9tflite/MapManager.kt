@@ -61,8 +61,16 @@ object MapManager {
         // ✅ Re-add user GPS overlay
         val locationOverlay = MyLocationNewOverlay(GpsMyLocationProvider(context), mapView)
         locationOverlay.enableMyLocation()
-        locationOverlay.enableFollowLocation()
+
+// 🔒 Never auto-follow — prevents snapping after GPS fix
+        //  if (!isShowingSearchResult) {
+            //  locationOverlay.enableFollowLocation()
+            //   }
+// Optionally allow manual follow later via button if needed
+
         mapView.overlays.add(locationOverlay)
+
+
 
         // ✅ Add red and green markers from detectionRecords
         for (record in records) {
