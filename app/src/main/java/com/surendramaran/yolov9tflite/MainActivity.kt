@@ -69,6 +69,8 @@ import java.io.File
 import java.io.FileOutputStream
 import java.util.Date
 import java.util.Locale
+import android.app.AlertDialog
+import java.text.SimpleDateFormat
 
 
 class MainActivity : AppCompatActivity() {
@@ -96,6 +98,7 @@ class MainActivity : AppCompatActivity() {
     private val NIGHT_MODE_KEY = "NightModeState"
     private val detectionRecords = mutableListOf<DetectionRecord>()
     var selectedDetectionRecord: DetectionRecord? = null
+
 
 
     // CardView and TextView for heads-up notification
@@ -515,7 +518,8 @@ class MainActivity : AppCompatActivity() {
                         latitude = lat,
                         longitude = lon,
                         timestamp = timestamp,
-                        isReported = true
+                        isReported = true,
+                        address = address
                     )
 
                     detectionRecords.add(record)
@@ -981,8 +985,20 @@ class MainActivity : AppCompatActivity() {
 
         dialog.show()
     }
+    fun showReportedInfoDialog(record: DetectionRecord) {
+        val message = """
+        🛠 Type: ${record.anomalyType}
+        📍 Location: ${record.address.ifEmpty { "Unknown" }}
+        📅 Date: ${SimpleDateFormat("MMMM dd yyyy", Locale.getDefault()).format(Date(record.timestamp))}
+        🕒 Time: ${SimpleDateFormat("hh:mm a", Locale.getDefault()).format(Date(record.timestamp))}
+    """.trimIndent()
 
-
+        AlertDialog.Builder(this)
+            .setTitle("Reported Anomaly")
+            .setMessage(message)
+            .setPositiveButton("OK", null)
+            .show()
+    }
 
     private fun showReportVerificationDialog(
         hazardType: String,

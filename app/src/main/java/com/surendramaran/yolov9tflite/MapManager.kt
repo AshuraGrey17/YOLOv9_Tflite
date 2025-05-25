@@ -76,10 +76,17 @@ object MapManager {
             marker.setOnMarkerClickListener { _, _ ->
                 if (context is MainActivity) {
                     context.selectedDetectionRecord = record
-                    context.showReportMenuDialog()
+
+                    if (record.isReported) {
+                        context.showReportedInfoDialog(record) // ✅ opens dialog for green marker
+                    } else {
+                        context.showReportMenuDialog() // ✅ still opens manual report for red marker
+                    }
                 }
                 true
             }
+
+
 
             mapView.overlays.add(marker)
         }
