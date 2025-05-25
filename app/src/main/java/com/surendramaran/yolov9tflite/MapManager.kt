@@ -35,29 +35,32 @@ object MapManager {
 
         val geoPoint = GeoPoint(lat, lon)
         if (!isShowingSearchResult) {
-            userLocation = geoPoint // Save user location only when not showing a search
+            userLocation = geoPoint
         }
 
         val mapController = mapView.controller
         mapController.setZoom(15.0)
         mapController.setCenter(geoPoint)
 
-        mapView.overlays.clear()
+        // ✅ Instead of clearing all overlays, remove only the markers you control
+        mapView.overlays.removeAll {
+            it is Marker && it.title != "Your Location" && it.title != "Searched Location"
+        }
 
-        // Add current or searched location marker
+        // ✅ Re-add your location or search marker
         val centerMarker = Marker(mapView)
         centerMarker.position = geoPoint
         centerMarker.setAnchor(Marker.ANCHOR_CENTER, Marker.ANCHOR_BOTTOM)
         centerMarker.title = if (isShowingSearchResult) "Searched Location" else "Your Location"
         mapView.overlays.add(centerMarker)
 
-        // Add user location overlay
+        // ✅ Re-add user GPS overlay
         val locationOverlay = MyLocationNewOverlay(GpsMyLocationProvider(context), mapView)
         locationOverlay.enableMyLocation()
         locationOverlay.enableFollowLocation()
         mapView.overlays.add(locationOverlay)
 
-        // Add detection markers
+        // ✅ Add red and green markers from detectionRecords
         for (record in records) {
             val marker = Marker(mapView)
             marker.position = GeoPoint(record.latitude, record.longitude)
@@ -78,13 +81,13 @@ object MapManager {
                 true
             }
 
-
             mapView.overlays.add(marker)
         }
 
         mapView.invalidate()
         Log.d("MapManager", "✅ Map centered on: $lat, $lon with ${records.size} records")
     }
+
 
 
     fun addReportedHazardMarker(

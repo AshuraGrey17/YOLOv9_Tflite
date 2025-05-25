@@ -309,13 +309,9 @@ class MainActivity : AppCompatActivity() {
     private fun onDetectWithBitmap(rotatedBitmap: Bitmap) {
         detector?.detect(rotatedBitmap) // Still perform detection
 
-        // Store rotatedBitmap for later use
-        // We'll grab the latest result inside detector (or fake it for now)
-        // For prototype, just save image and timestamp
         val timestamp = System.currentTimeMillis()
         val imagePath = saveBitmapToCache(rotatedBitmap, "detection_$timestamp.png")
 
-// Try to fetch the most recent location
         if (ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION)
             == PackageManager.PERMISSION_GRANTED) {
 
@@ -323,20 +319,25 @@ class MainActivity : AppCompatActivity() {
                 val latitude = location?.latitude ?: 0.0
                 val longitude = location?.longitude ?: 0.0
 
+                // Optional: Slight jitter to spread overlapping markers
+                val jitter = (0..10).random() * 0.000002  // ~0–2 meters
+                val jitteredLat = latitude + jitter
+                val jitteredLon = longitude + jitter
+
                 val record = DetectionRecord(
-                    anomalyType = "Unknown", // Will be updated later in onDetect()
+                    anomalyType = "Unknown",
                     imagePath = imagePath,
-                    latitude = latitude,
-                    longitude = longitude,
+                    latitude = jitteredLat,
+                    longitude = jitteredLon,
                     timestamp = timestamp
                 )
 
                 detectionRecords.add(record)
-                Log.d("DetectionLog", "📍 Detection saved with location: $latitude, $longitude")
+                Log.d("DetectionLog", "🆕 Red marker added at: $jitteredLat, $jitteredLon")
             }
 
         } else {
-            // If permission not granted, still save the detection with default location
+            // GPS not available
             val record = DetectionRecord(
                 anomalyType = "Unknown",
                 imagePath = imagePath,
@@ -345,10 +346,14 @@ class MainActivity : AppCompatActivity() {
                 timestamp = timestamp
             )
 
+            // Optional: still allow stacking at 0,0
             detectionRecords.add(record)
-            Log.w("DetectionLog", "⚠️ Location not available — detection saved without GPS")
+            Log.w("DetectionLog", "⚠️ Detection saved without GPS")
         }
     }
+
+
+
 
     private val requestPermissionLauncher = registerForActivityResult(ActivityResultContracts.RequestMultiplePermissions()) {
         if (it[Manifest.permission.CAMERA] == true) { startCamera() }
@@ -489,26 +494,32 @@ class MainActivity : AppCompatActivity() {
             .addOnSuccessListener { documents ->
                 for (doc in documents) {
                     val type = doc.getString("type") ?: "Unknown"
-                    val address = doc.getString("location") ?: "" // ✅ Read address for display
-                    val lat = doc.getDouble("latitude") ?: 0.0    // ✅ Actual coordinates
+                    val address = doc.getString("location") ?: ""
+                    val lat = doc.getDouble("latitude") ?: 0.0
                     val lon = doc.getDouble("longitude") ?: 0.0
                     val date = doc.getString("date") ?: ""
                     val time = doc.getString("time") ?: ""
                     val imageUrl = doc.getString("imageUrl") ?: ""
-                    val timestamp = System.currentTimeMillis() // Use for ordering
+                    val timestamp = System.currentTimeMillis()
+
+                    // ✅ Remove duplicate red markers at this location
+                    //detectionRecords.removeAll { local ->
+                    //    !local.isReported &&
+                    //           Math.abs(local.latitude - lat) < 0.000001 &&
+                    //           Math.abs(local.longitude - lon) < 0.000001
+                    //}
 
                     val record = DetectionRecord(
                         anomalyType = type,
-                        imagePath = imageUrl,     // May be empty if it's a local detection
+                        imagePath = imageUrl,
                         latitude = lat,
                         longitude = lon,
                         timestamp = timestamp,
-                        isReported = true         // These came from Firebase
+                        isReported = true
                     )
 
                     detectionRecords.add(record)
                 }
-
 
                 onComplete()
             }
@@ -516,6 +527,7 @@ class MainActivity : AppCompatActivity() {
                 Log.e("FirebaseLoad", "❌ Failed to load reports: ${e.message}", e)
                 onComplete()
             }
+
     }
 
 
