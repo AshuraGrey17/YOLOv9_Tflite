@@ -34,14 +34,15 @@
             </intent-filter>
         </activity>
 
-        <!-- Main Activity (No Launcher Intent) -->
+        <!-- ✅ Add MainActivity -->
         <activity
             android:name=".MainActivity"
-            android:exported="true">
-        </activity>
+            android:exported="true" />
 
-
-
+        <!-- Login & Signup Activity -->
+        <activity
+            android:name=".LoginNSignup"
+            android:exported="true" />
 
     </application>
 

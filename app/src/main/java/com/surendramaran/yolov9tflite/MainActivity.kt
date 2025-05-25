@@ -127,92 +127,87 @@ class MainActivity : AppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        binding = ActivityMainBinding.inflate(layoutInflater)
-        sharedPreferences = getSharedPreferences(PREFERENCES_NAME, MODE_PRIVATE)
-        fusedLocationClient = LocationServices.getFusedLocationProviderClient(this)
 
+        try {
+            binding = ActivityMainBinding.inflate(layoutInflater)
+            setContentView(binding.root)  // move this here right after inflating
 
-        if (ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION)
-            == PackageManager.PERMISSION_GRANTED) {
+            sharedPreferences = getSharedPreferences(PREFERENCES_NAME, MODE_PRIVATE)
+            fusedLocationClient = LocationServices.getFusedLocationProviderClient(this)
 
-            fusedLocationClient.lastLocation.addOnSuccessListener { location: Location? ->
-                location?.let {
-                    // Save exact location
-                    sharedPreferences.edit()
-                        .putFloat(LAT_KEY, it.latitude.toFloat())
-                        .putFloat(LON_KEY, it.longitude.toFloat())
-                        .apply()
+            enableEdgeToEdge()
+
+            ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main)) { v, insets ->
+                val systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars())
+                v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom)
+                insets
+            }
+
+            // Location permission & saving
+            if (ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION)
+                == PackageManager.PERMISSION_GRANTED) {
+                fusedLocationClient.lastLocation.addOnSuccessListener { location: Location? ->
+                    location?.let {
+                        sharedPreferences.edit()
+                            .putFloat(LAT_KEY, it.latitude.toFloat())
+                            .putFloat(LON_KEY, it.longitude.toFloat())
+                            .apply()
+                    }
                 }
             }
-        }
 
+            binding.fab.setOnClickListener {
+                val dialog = BottomSheetDialog(this)
+                val view = layoutInflater.inflate(R.layout.bottomsheetlayout, null)
+                dialog.setContentView(view)
 
-        enableEdgeToEdge()
-        setContentView(binding.root)
-        ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main)) { v, insets ->
-            val systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars())
-            v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom)
-            insets
-        }
-        binding.fab.setOnClickListener {
-            val dialog = BottomSheetDialog(this)
-            val view = layoutInflater.inflate(R.layout.bottomsheetlayout, null)
-            dialog.setContentView(view)
+                val mapView = view.findViewById<MapView>(R.id.map)
 
-            val mapView = view.findViewById<MapView>(R.id.map)
+                dialog.setOnShowListener {
+                    mapView.postDelayed({
+                        if (ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION)
+                            == PackageManager.PERMISSION_GRANTED) {
+                            MapManager.setupMap(this, mapView, 14.5995, 120.9842, detectionRecords)
+                        } else {
+                            Toast.makeText(this, "Location permission not granted.", Toast.LENGTH_SHORT).show()
+                        }
+                    }, 500)
+                }
 
-            dialog.setOnShowListener {
-                mapView.postDelayed({
-                    if (ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION)
-                        == PackageManager.PERMISSION_GRANTED) {
-                        MapManager.setupMap(this, mapView, 14.5995, 120.9842, detectionRecords)
-                    } else {
-                        Toast.makeText(this, "Location permission not granted.", Toast.LENGTH_SHORT).show()
-                    }
-                }, 500)
+                dialog.show()
             }
 
-            dialog.show()
-        }
+            cameraExecutor = Executors.newSingleThreadExecutor()
 
-        cameraExecutor = Executors.newSingleThreadExecutor()
-
-        cameraExecutor.execute {
-            detector = Detector(baseContext, MODEL_PATH, LABELS_PATH, this) {
-                toast(it)
+            cameraExecutor.execute {
+                detector = Detector(baseContext, MODEL_PATH, LABELS_PATH, this) {
+                    toast(it)
+                }
             }
+
+            if (!allPermissionsGranted()) {
+                ActivityCompat.requestPermissions(this, REQUIRED_PERMISSIONS, REQUEST_CODE_PERMISSIONS)
+            } else {
+                startCamera()
+            }
+
+            // Notification setup
+            notificationBanner = findViewById(R.id.detectionNotificationCard)
+            notificationText = findViewById(R.id.detectionNotificationText)
+
+            notificationBanner.setOnClickListener {
+                hideNotification()
+            }
+
+            // Extra FAB setup again (if needed)
+            binding.fab.setOnClickListener { showBottomDialog() }
+
+        } catch (e: Exception) {
+            e.printStackTrace()
+            Toast.makeText(this, "Crash in MainActivity: ${e.message}", Toast.LENGTH_LONG).show()
         }
-
-        if (ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION)
-            != PackageManager.PERMISSION_GRANTED) {
-            ActivityCompat.requestPermissions(
-                this,
-                arrayOf(Manifest.permission.ACCESS_FINE_LOCATION),
-                1
-            )
-        }
-
-        if (allPermissionsGranted()) {
-            startCamera()
-        } else {
-            ActivityCompat.requestPermissions(this, REQUIRED_PERMISSIONS, REQUEST_CODE_PERMISSIONS)
-        }
-
-
-
-        // Initialize notification components
-        notificationBanner = findViewById(R.id.detectionNotificationCard)
-        notificationText = findViewById(R.id.detectionNotificationText)
-
-        // Dismiss notification on tap
-        notificationBanner.setOnClickListener {
-            hideNotification()
-        }
-
-
-        // Floating Action Button for showing bottom dialog
-        binding.fab.setOnClickListener { showBottomDialog() }
     }
+
 
     private val imagePickerLauncher = registerForActivityResult(
         ActivityResultContracts.GetContent()
@@ -1267,4 +1262,5 @@ class MainActivity : AppCompatActivity() {
             setGravity(Gravity.BOTTOM)
         }
     }
+
 }

@@ -62,8 +62,10 @@ class SplashActivity : AppCompatActivity() {
                     progressBar.progress = progress
                     handler.postDelayed(this, 60) // Smooth interval (~6s total)
                 } else {
-                    // Finish and go to MainActivity
-                    startActivity(Intent(this@SplashActivity, MainActivity::class.java))
+                    // 👇 Redirect to login/signup screen instead of MainActivity
+                    val intent = Intent(this@SplashActivity, LoginNSignup::class.java)
+                    intent.putExtra("showSignup", false) // show login screen
+                    startActivity(intent)
                     finish()
                 }
             }
