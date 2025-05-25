@@ -98,6 +98,9 @@ class MainActivity : AppCompatActivity() {
     private val NIGHT_MODE_KEY = "NightModeState"
     private val detectionRecords = mutableListOf<DetectionRecord>()
     var selectedDetectionRecord: DetectionRecord? = null
+    private var lastMarkerTime = 0L  // For throttling red marker creation only
+
+
 
 
 
@@ -310,9 +313,16 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun onDetectWithBitmap(rotatedBitmap: Bitmap) {
-        detector?.detect(rotatedBitmap) // Still perform detection
+        detector?.detect(rotatedBitmap)
 
-        val timestamp = System.currentTimeMillis()
+        val now = System.currentTimeMillis()
+        if (now - lastMarkerTime < 5000) {
+            Log.d("RedMarkerThrottle", "⏳ Skipping red marker — still in cooldown")
+            return
+        }
+        lastMarkerTime = now
+
+        val timestamp = now
         val imagePath = saveBitmapToCache(rotatedBitmap, "detection_$timestamp.png")
 
         if (ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION)
@@ -322,8 +332,7 @@ class MainActivity : AppCompatActivity() {
                 val latitude = location?.latitude ?: 0.0
                 val longitude = location?.longitude ?: 0.0
 
-                // Optional: Slight jitter to spread overlapping markers
-                val jitter = (0..10).random() * 0.000002  // ~0–2 meters
+                val jitter = (0..10).random() * 0.000002
                 val jitteredLat = latitude + jitter
                 val jitteredLon = longitude + jitter
 
@@ -340,7 +349,6 @@ class MainActivity : AppCompatActivity() {
             }
 
         } else {
-            // GPS not available
             val record = DetectionRecord(
                 anomalyType = "Unknown",
                 imagePath = imagePath,
@@ -349,11 +357,12 @@ class MainActivity : AppCompatActivity() {
                 timestamp = timestamp
             )
 
-            // Optional: still allow stacking at 0,0
             detectionRecords.add(record)
             Log.w("DetectionLog", "⚠️ Detection saved without GPS")
         }
     }
+
+
 
 
 
@@ -393,7 +402,7 @@ class MainActivity : AppCompatActivity() {
         }
     }
     private var lastDetectionTime = 0L
-    private val detectionInterval = 2000 // Adjust time in milliseconds (e.g., 2000ms = 2 seconds)
+    private val detectionInterval = 6000 // Adjust time in milliseconds (e.g., 2000ms = 2 seconds)
 
     fun onDetect(boundingBoxes: List<BoundingBox>, inferenceTime: Long) {
         val currentTime = System.currentTimeMillis()
