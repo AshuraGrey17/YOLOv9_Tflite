@@ -46,18 +46,21 @@
 
 
     <!-- 🔍 SearchView just below GPU, above map -->
+
+    <!-- 🗺️ Centered Map -->
+
     <SearchView
         android:id="@+id/searchView"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:background="@drawable/border_rounded2"
         android:layout_below="@id/gpuCard"
-        android:layout_marginTop="12dp"
         android:layout_marginStart="16dp"
+        android:layout_marginTop="12dp"
         android:layout_marginEnd="16dp"
+        android:background="@drawable/border_rounded2"
         android:queryHint="Search Location" />
 
-    <!-- 🗺️ Centered Map -->
+
     <org.osmdroid.views.MapView
         android:id="@+id/map"
         android:layout_width="match_parent"
