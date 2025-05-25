@@ -97,19 +97,19 @@ object MapManager {
 
 
 
-    fun addReportedHazardMarker(
-        context: Context,
-        mapView: MapView,
-        location: GeoPoint,
-        type: String
-    ) {
-        val marker = Marker(mapView)
-        marker.position = location
-        marker.title = type
-        marker.icon = ContextCompat.getDrawable(context, R.drawable.marker_green)
-        mapView.overlays.add(marker)
-        mapView.invalidate()
-    }
+   // fun addReportedHazardMarker(
+    //    context: Context,
+    //   mapView: MapView,
+    //   location: GeoPoint,
+    //   type: String
+   //  ) {
+    //   val marker = Marker(mapView)
+    //   marker.position = location
+    //  marker.title = type
+    //   marker.icon = ContextCompat.getDrawable(context, R.drawable.marker_green)
+    //   mapView.overlays.add(marker)
+    //    mapView.invalidate()
+    //  }
 
 
 
