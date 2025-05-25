@@ -48,11 +48,15 @@ object MapManager {
         }
 
         // ✅ Re-add your location or search marker
-        val centerMarker = Marker(mapView)
-        centerMarker.position = geoPoint
-        centerMarker.setAnchor(Marker.ANCHOR_CENTER, Marker.ANCHOR_BOTTOM)
-        centerMarker.title = if (isShowingSearchResult) "Searched Location" else "Your Location"
-        mapView.overlays.add(centerMarker)
+        if (isShowingSearchResult) {
+            val centerMarker = Marker(mapView)
+            centerMarker.position = geoPoint
+            centerMarker.setAnchor(Marker.ANCHOR_CENTER, Marker.ANCHOR_BOTTOM)
+            centerMarker.title = "Searched Location"
+            centerMarker.icon = ContextCompat.getDrawable(context, R.drawable.marker_location) // use your hand icon
+            mapView.overlays.add(centerMarker)
+        }
+
 
         // ✅ Re-add user GPS overlay
         val locationOverlay = MyLocationNewOverlay(GpsMyLocationProvider(context), mapView)
