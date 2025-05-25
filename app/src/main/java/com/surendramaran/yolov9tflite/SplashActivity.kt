@@ -8,11 +8,13 @@ import android.widget.ImageView
 import android.widget.ProgressBar
 import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
+import com.google.firebase.auth.FirebaseAuth
 
 class SplashActivity : AppCompatActivity() {
     private lateinit var progressBar: ProgressBar
     private lateinit var loadingText: TextView
     private lateinit var tagline: TextView
+    private lateinit var auth: FirebaseAuth
     private val handler = Handler(Looper.getMainLooper())
 
     private var progress = 0
@@ -26,6 +28,17 @@ class SplashActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.splash_screen)
+
+        auth = FirebaseAuth.getInstance()
+
+        // ✅ Check if user is already logged in
+        val currentUser = auth.currentUser
+        if (currentUser != null) {
+            // 🎯 Already logged in – skip login screen
+            startActivity(Intent(this, MainActivity::class.java))
+            finish()
+            return
+        }
 
         // View bindings
         progressBar = findViewById(R.id.progressBar)
@@ -49,7 +62,7 @@ class SplashActivity : AppCompatActivity() {
         tagline.animate().alpha(1f).setStartDelay(500).setDuration(800).start()
         loadingText.animate().alpha(1f).setStartDelay(1000).setDuration(800).start()
 
-        // Start animations
+        // Start animations and progress
         showTips()
         startSmoothProgress()
     }
@@ -62,9 +75,9 @@ class SplashActivity : AppCompatActivity() {
                     progressBar.progress = progress
                     handler.postDelayed(this, 60) // Smooth interval (~6s total)
                 } else {
-                    // 👇 Redirect to login/signup screen instead of MainActivity
+                    // 🧑‍💼 Go to login/signup if not logged in
                     val intent = Intent(this@SplashActivity, LoginNSignup::class.java)
-                    intent.putExtra("showSignup", false) // show login screen
+                    intent.putExtra("showSignup", false)
                     startActivity(intent)
                     finish()
                 }

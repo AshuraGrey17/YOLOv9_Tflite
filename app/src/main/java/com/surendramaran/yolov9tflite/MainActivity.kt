@@ -70,6 +70,8 @@ import java.io.FileOutputStream
 import java.util.Date
 import java.util.Locale
 import android.app.AlertDialog
+import android.content.Intent
+import com.google.firebase.auth.FirebaseAuth
 import java.text.SimpleDateFormat
 
 
@@ -848,15 +850,30 @@ class MainActivity : AppCompatActivity() {
             showUserDetailsDialog()
         }
 
-        signOutLayout?.setOnClickListener { dialog.dismiss() }
+        signOutLayout?.setOnClickListener {
+            // Sign out Firebase user
+            FirebaseAuth.getInstance().signOut()
+
+            // Dismiss the dialog
+            dialog.dismiss()
+
+            // Redirect to login/signup screen
+            val intent = Intent(this, LoginNSignup::class.java)
+            intent.putExtra("showSignup", false) // show login screen
+            startActivity(intent)
+            finish() // Prevent going back to MainActivity
+        }
+
         cancelMenuButton?.setOnClickListener { dialog.dismiss() }
 
         dialog.show()
+
         backButton?.setOnClickListener {
             dialog.dismiss()
             showBottomDialog()
         }
     }
+
 
     private fun showUserDetailsDialog() {
         val dialog = createDialog(R.layout.profile_userdetails)
