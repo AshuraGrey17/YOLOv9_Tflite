@@ -404,35 +404,39 @@ class MainActivity : AppCompatActivity() {
         }
     }
     private var lastDetectionTime = 0L
-    private val detectionInterval = 6000 // Adjust time in milliseconds (e.g., 2000ms = 2 seconds)
+    private val detectionInterval = 4000 // Adjust time in milliseconds (e.g., 4000ms = 4 seconds)
 
     fun onDetect(boundingBoxes: List<BoundingBox>, inferenceTime: Long) {
         val currentTime = System.currentTimeMillis()
 
-        if (currentTime - lastDetectionTime < detectionInterval) {
-            return // Skip detection if interval hasn't passed
-        }
-
+        if (currentTime - lastDetectionTime < detectionInterval) return
         lastDetectionTime = currentTime
 
         runOnUiThread {
             if (boundingBoxes.isNotEmpty()) {
-                val detectedBox = boundingBoxes[0] // Only process the first detection
+                val detectedBox = boundingBoxes[0]
                 val detectedClass = detectedBox.clsName
+                val confidence = String.format("%.2f", detectedBox.cnf * 100)
                 val severity = getSeverity(detectedClass)
 
+                // ✅ Show only class name in notification (no percentage)
                 showNotification("$detectedClass detected! Severity: ${severity.name}")
 
-                if (severity == Severity.HIGH) {
-                    vibratePhone() // Vibrate for high severity detections
-                }
+                if (severity == Severity.HIGH) vibratePhone()
+
+                // ✅ Show class + confidence only in bottom panel & dialog
+                val detectionText = "$detectedClass: $confidence%"
+                findViewById<TextView>(R.id.detection1)?.text = "Detecting: $detectionText"
+                findViewById<TextView>(R.id.detectionResultText)?.text = "Detecting: $detectionText"
 
                 binding.overlay.apply {
-                    setResults(listOf(detectedBox)) // Pass only one bounding box
+                    setResults(listOf(detectedBox)) // OverlayView will still get raw data
                     invalidate()
                 }
             } else {
                 hideNotification()
+                findViewById<TextView>(R.id.detection1)?.text = "Detecting"
+                findViewById<TextView>(R.id.detectionResultText)?.text = "Detecting"
             }
 
             binding.inferenceTime.text = "${inferenceTime}ms"
