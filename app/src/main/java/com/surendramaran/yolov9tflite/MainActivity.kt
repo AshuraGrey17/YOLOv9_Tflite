@@ -78,6 +78,7 @@ import java.text.SimpleDateFormat
 class MainActivity : AppCompatActivity() {
 
     private lateinit var binding: ActivityMainBinding
+    private var lastDetectionText = "Detecting"
     private lateinit var mapManager: MapManager
     private val isFrontCamera = false
     private var preview: Preview? = null
@@ -101,10 +102,6 @@ class MainActivity : AppCompatActivity() {
     private val detectionRecords = mutableListOf<DetectionRecord>()
     var selectedDetectionRecord: DetectionRecord? = null
     private var lastMarkerTime = 0L  // For throttling red marker creation only
-
-
-
-
 
     // CardView and TextView for heads-up notification
     private lateinit var notificationBanner: CardView
@@ -364,6 +361,11 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
+
+
+
+
+
     private val requestPermissionLauncher = registerForActivityResult(ActivityResultContracts.RequestMultiplePermissions()) {
         if (it[Manifest.permission.CAMERA] == true) { startCamera() }
     }
@@ -399,7 +401,7 @@ class MainActivity : AppCompatActivity() {
         }
     }
     private var lastDetectionTime = 0L
-    private val detectionInterval = 5000 // Adjust time in milliseconds (e.g., 5000ms = 5 seconds)
+    private val detectionInterval = 4000 // Adjust time in milliseconds (e.g., 4000ms = 4 seconds)
 
     fun onDetect(boundingBoxes: List<BoundingBox>, inferenceTime: Long) {
         val currentTime = System.currentTimeMillis()
@@ -414,29 +416,29 @@ class MainActivity : AppCompatActivity() {
                 val confidence = String.format("%.2f", detectedBox.cnf * 100)
                 val severity = getSeverity(detectedClass)
 
-                // ✅ Show only class name in notification (no percentage)
-                showNotification("$detectedClass detected! Severity: ${severity.name}")
+                val detectionText = "$detectedClass: $confidence%"
 
+                showNotification("$detectedClass detected! Severity: ${severity.name}")
                 if (severity == Severity.HIGH) vibratePhone()
 
-                // ✅ Show class + confidence only in bottom panel & dialog
-                val detectionText = "$detectedClass: $confidence%"
-                findViewById<TextView>(R.id.detection1)?.text = "Detecting: $detectionText"
-                bottomSheetView?.findViewById<TextView>(R.id.detectionResultText)?.text = "Detecting: $detectionText"
-
+                // ✅ Update both main activity and bottom sheet detection text
+                findViewById<TextView>(R.id.detectionResultTextMain)?.text = "Detecting: $detectionText"
+                lastDetectionText = "Detecting: $detectionText"
                 binding.overlay.apply {
-                    setResults(listOf(detectedBox)) // OverlayView will still get raw data
+                    setResults(listOf(detectedBox))
                     invalidate()
                 }
             } else {
                 hideNotification()
-                findViewById<TextView>(R.id.detection1)?.text = "Detecting"
-                bottomSheetView?.findViewById<TextView>(R.id.detectionResultText)?.text = "Detecting"
+                findViewById<TextView>(R.id.detectionResultTextMain)?.text = "Detecting"
+                findViewById<TextView>(R.id.detectionResultTextSheet)?.text = "Detecting"
             }
 
             binding.inferenceTime.text = "${inferenceTime}ms"
         }
     }
+
+
 
     private fun vibratePhone() {
         if (!isNotificationEnabled) return // 🚨 Stop vibration if notifications are off
@@ -544,34 +546,23 @@ class MainActivity : AppCompatActivity() {
 
     }
 
-    private var bottomSheetView: View? = null
 
     private fun showBottomDialog() {
-        val dialog = Dialog(this)
-        val view = layoutInflater.inflate(R.layout.bottomsheetlayout, null)
-        bottomSheetView = view
-
-        dialog.requestWindowFeature(Window.FEATURE_NO_TITLE)
-        dialog.setContentView(view)
-        dialog.window?.apply {
-            setLayout(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT)
-            setBackgroundDrawable(ColorDrawable(Color.TRANSPARENT))
-            attributes.windowAnimations = R.style.DialogAnimation
-            setGravity(Gravity.BOTTOM)
-        }
-
+        val dialog = createDialog(R.layout.bottomsheetlayout)
         dialog.show()
-
-        val mapView = view.findViewById<MapView>(R.id.map)
-        val searchView = view.findViewById<SearchView>(R.id.searchView)
-        val lat = sharedPreferences.getFloat(LAT_KEY, 14.5995f)
+        val mapView = dialog.findViewById<MapView>(R.id.map)
+        val searchView = dialog.findViewById<SearchView>(R.id.searchView)
+        val lat = sharedPreferences.getFloat(LAT_KEY, 14.5995f) // Default to Manila
         val lon = sharedPreferences.getFloat(LON_KEY, 120.9842f)
+        val detectionTextView = dialog.findViewById<TextView>(R.id.detectionResultTextSheet)
+        detectionTextView?.text = lastDetectionText
 
-        MapManager.clearSearchState()
+        // Set initial user location
+        MapManager.clearSearchState()  // 👈 Add this right before setupMap
         loadReportedDetectionsFromFirebase {
             MapManager.setupMap(this, mapView, lat.toDouble(), lon.toDouble(), detectionRecords)
         }
-
+        // Handle search input
         searchView?.setOnQueryTextListener(object : SearchView.OnQueryTextListener {
             override fun onQueryTextSubmit(query: String?): Boolean {
                 if (!query.isNullOrEmpty()) {
@@ -580,22 +571,21 @@ class MainActivity : AppCompatActivity() {
                 return true
             }
 
-            override fun onQueryTextChange(newText: String?): Boolean {
-                if (newText.isNullOrEmpty() && MapManager.isSearchActive()) {
-                    MapManager.resetToUserLocation(this@MainActivity, mapView, detectionRecords)
-                    MapManager.clearSearchState()
+                override fun onQueryTextChange(newText: String?): Boolean {
+                    if (newText.isNullOrEmpty() && MapManager.isSearchActive()) {
+                        MapManager.resetToUserLocation(this@MainActivity, mapView, detectionRecords)
+                        MapManager.clearSearchState()
+                    }
+                    return true
                 }
-                return true
-            }
-        })
+            })
 
-        view.findViewById<FloatingActionButton>(R.id.menuButton)?.setOnClickListener {
+        val menuButton: FloatingActionButton? = dialog.findViewById(R.id.menuButton)
+        menuButton?.setOnClickListener {
             dialog.dismiss()
             showMenuBottomDialog()
         }
     }
-
-
 
     private fun showMenuBottomDialog() {
         val dialog = createDialog(R.layout.bottomsheet_menu)
