@@ -96,7 +96,7 @@
                         android:id="@+id/Roadtype"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="Road Type"
+                        android:text="Hazard Type"
                         android:textColor="@color/black"
                         android:textSize="18sp"
                         android:textStyle="bold" />

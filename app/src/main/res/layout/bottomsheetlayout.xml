@@ -46,18 +46,21 @@
 
 
     <!-- 🔍 SearchView just below GPU, above map -->
+
+    <!-- 🗺️ Centered Map -->
+
     <SearchView
         android:id="@+id/searchView"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:background="@drawable/border_rounded2"
         android:layout_below="@id/gpuCard"
-        android:layout_marginTop="12dp"
         android:layout_marginStart="16dp"
+        android:layout_marginTop="12dp"
         android:layout_marginEnd="16dp"
+        android:background="@drawable/border_rounded2"
         android:queryHint="Search Location" />
 
-    <!-- 🗺️ Centered Map -->
+
     <org.osmdroid.views.MapView
         android:id="@+id/map"
         android:layout_width="match_parent"
@@ -73,7 +76,7 @@
     <LinearLayout
         android:id="@+id/bottomBorder"
         android:layout_width="match_parent"
-        android:layout_height="80dp"
+        android:layout_height="65dp"
         android:layout_below="@id/map"
         android:layout_marginTop="20dp"
         android:background="@drawable/border_rounded2"
@@ -87,14 +90,16 @@
             android:layout_height="wrap_content"
             android:orientation="horizontal"
             android:padding="10dp">
+
             <TextView
+                android:id="@+id/detectionResultTextSheet"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
+                android:layout_marginLeft="16dp"
+                android:layout_weight="1"
                 android:text="Detecting:"
                 android:textColor="@color/black"
-                android:layout_marginLeft="16dp"
-                android:textSize="30sp"
-                android:layout_weight="1" />
+                android:textSize="20sp" />
         </LinearLayout>
 
         <LinearLayout
