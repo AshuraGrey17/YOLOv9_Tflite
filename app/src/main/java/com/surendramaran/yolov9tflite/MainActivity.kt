@@ -102,6 +102,8 @@ class MainActivity : AppCompatActivity() {
     private val detectionRecords = mutableListOf<DetectionRecord>()
     var selectedDetectionRecord: DetectionRecord? = null
     private var lastMarkerTime = 0L  // For throttling red marker creation only
+    private var detectionResultTextSheetView: TextView? = null
+
 
     // CardView and TextView for heads-up notification
     private lateinit var notificationBanner: CardView
@@ -303,10 +305,6 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-
-
-
-
     private fun allPermissionsGranted() = REQUIRED_PERMISSIONS.all {
         ContextCompat.checkSelfPermission(baseContext, it) == PackageManager.PERMISSION_GRANTED
     }
@@ -421,9 +419,11 @@ class MainActivity : AppCompatActivity() {
                 showNotification("$detectedClass detected! Severity: ${severity.name}")
                 if (severity == Severity.HIGH) vibratePhone()
 
-                // ✅ Update both main activity and bottom sheet detection text
+                // ✅ Update both main screen and bottom sheet
                 findViewById<TextView>(R.id.detectionResultTextMain)?.text = "Detecting: $detectionText"
+                detectionResultTextSheetView?.text = "Detecting: $detectionText"
                 lastDetectionText = "Detecting: $detectionText"
+
                 binding.overlay.apply {
                     setResults(listOf(detectedBox))
                     invalidate()
@@ -431,12 +431,13 @@ class MainActivity : AppCompatActivity() {
             } else {
                 hideNotification()
                 findViewById<TextView>(R.id.detectionResultTextMain)?.text = "Detecting"
-                findViewById<TextView>(R.id.detectionResultTextSheet)?.text = "Detecting"
+                detectionResultTextSheetView?.text = "Detecting"
             }
 
             binding.inferenceTime.text = "${inferenceTime}ms"
         }
     }
+
 
 
 
@@ -555,6 +556,7 @@ class MainActivity : AppCompatActivity() {
         val lat = sharedPreferences.getFloat(LAT_KEY, 14.5995f) // Default to Manila
         val lon = sharedPreferences.getFloat(LON_KEY, 120.9842f)
         val detectionTextView = dialog.findViewById<TextView>(R.id.detectionResultTextSheet)
+        detectionResultTextSheetView = detectionTextView  // Save reference
         detectionTextView?.text = lastDetectionText
 
         // Set initial user location
