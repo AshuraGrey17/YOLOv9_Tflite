@@ -71,6 +71,7 @@ import java.util.Date
 import java.util.Locale
 import android.app.AlertDialog
 import android.content.Intent
+import android.media.MediaPlayer
 import com.google.firebase.auth.FirebaseAuth
 import java.text.SimpleDateFormat
 
@@ -126,6 +127,8 @@ class MainActivity : AppCompatActivity() {
         HIGH(R.color.red)
     }
 
+    private var mediaPlayer: MediaPlayer? = null
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         binding = ActivityMainBinding.inflate(layoutInflater)
@@ -147,9 +150,11 @@ class MainActivity : AppCompatActivity() {
             }
         }
 
-
         enableEdgeToEdge()
         setContentView(binding.root)
+
+        mediaPlayer = MediaPlayer.create(this, R.raw.notif_sound)
+
         ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main)) { v, insets ->
             val systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars())
             v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom)
@@ -370,6 +375,12 @@ class MainActivity : AppCompatActivity() {
 
     override fun onDestroy() {
         super.onDestroy()
+
+        // 👇 Release MediaPlayer
+        mediaPlayer?.release()
+        mediaPlayer = null
+
+        // Your existing cleanup
         detector?.close()
         cameraExecutor.shutdown()
     }
@@ -417,9 +428,18 @@ class MainActivity : AppCompatActivity() {
                 val detectionText = "$detectedClass: $confidence%"
 
                 showNotification("$detectedClass detected! Severity: ${severity.name}")
+
+                // ✅ Check if alert switch is ON
+                val isAlertEnabled = sharedPreferences.getBoolean(ALERT_KEY, true)
+
+                // ✅ Play sound only if alerts are enabled AND severity is MEDIUM or HIGH
+                if (isAlertEnabled && (severity == Severity.MEDIUM || severity == Severity.HIGH)) {
+                    mediaPlayer?.start()
+                }
+
                 if (severity == Severity.HIGH) vibratePhone()
 
-                // ✅ Update both main screen and bottom sheet
+                // Update UI
                 findViewById<TextView>(R.id.detectionResultTextMain)?.text = "Detecting: $detectionText"
                 detectionResultTextSheetView?.text = "Detecting: $detectionText"
                 lastDetectionText = "Detecting: $detectionText"
@@ -437,8 +457,6 @@ class MainActivity : AppCompatActivity() {
             binding.inferenceTime.text = "${inferenceTime}ms"
         }
     }
-
-
 
 
     private fun vibratePhone() {
