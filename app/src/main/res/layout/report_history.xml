@@ -1,19 +1,18 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
-    android:layout_height="wrap_content"
+    android:layout_height="match_parent"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:orientation="vertical"
     android:padding="16dp"
     android:background="@drawable/dialogbg">
 
-    <!-- ✅ Top Container for Cancel Button (Right) & Center Button (Middle) -->
+    <!-- Top Buttons -->
     <RelativeLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:padding="8dp">
 
-        <!-- Top Center Button -->
         <ImageView
             android:id="@+id/topCenterButton"
             android:layout_width="70dp"
@@ -25,28 +24,25 @@
 
         <ImageView
             android:id="@+id/Backbutton"
-            android:clickable="true"
             android:layout_width="30dp"
             android:layout_height="40dp"
             android:src="@drawable/back_arrow"
-            app:layout_constraintTop_toTopOf="parent"
-            app:layout_constraintStart_toStartOf="parent"
-            android:layout_margin="16dp" />
-        <!-- Cancel (X) Button on Right -->
+            android:layout_margin="16dp"
+            android:clickable="true" />
+
         <ImageView
             android:id="@+id/cancelMenuButton"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_alignParentEnd="true"
-            android:src="@drawable/ic_baseline_clear_24"
-            android:layout_marginEnd="8dp"/>
+            android:layout_marginEnd="8dp"
+            android:src="@drawable/ic_baseline_clear_24" />
     </RelativeLayout>
 
     <!-- Title -->
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:orientation="horizontal"
         android:gravity="center_horizontal"
         android:paddingBottom="8dp">
 
@@ -58,9 +54,9 @@
             android:textSize="18sp"
             android:textStyle="bold"
             android:textColor="#000000" />
-
     </LinearLayout>
 
+    <!-- View Suggested Button -->
     <androidx.cardview.widget.CardView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
@@ -74,106 +70,38 @@
             android:id="@+id/viewSuggestedButton"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="View Suggested"
             android:backgroundTint="@android:color/transparent"
-            android:textColor="@android:color/black"
+            android:elevation="0dp"
             android:padding="8dp"
-            android:elevation="0dp" />
+            android:text="View Suggested"
+            android:textColor="@android:color/black" />
     </androidx.cardview.widget.CardView>
 
     <!-- Detection History Title -->
     <TextView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Detection History"
+        android:text="Report History"
         android:textSize="16sp"
         android:textStyle="bold"
         android:gravity="center"
         android:layout_gravity="center"
-        android:layout_marginTop="10dp"/>
+        android:layout_marginTop="10dp"
+        android:textColor="@android:color/black"/>
 
-    <!-- Scrollable Detection History List -->
+    <!-- Scrollable History List -->
     <ScrollView
         android:layout_width="match_parent"
         android:layout_height="0dp"
         android:layout_weight="1"
         android:fillViewport="true">
 
+        <!-- 📌 Dynamic Items Will Be Added Here by Code -->
         <LinearLayout
+            android:id="@+id/historyContainer"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:orientation="vertical">
-
-            <!-- History Entries Container -->
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:orientation="horizontal"
-                android:padding="8dp"
-                android:layout_marginBottom="8dp"
-                android:background="@drawable/border_rect"
-                android:elevation="2dp">
-
-
-                <!-- Right: Texts -->
-                <LinearLayout
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_weight="1"
-                    android:orientation="vertical">
-
-                    <TextView
-                        android:id="@+id/roadType"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="Road Type"
-                        android:textStyle="bold"
-                        android:textSize="16sp"
-                        android:textColor="@color/black" />
-
-                    <TextView
-                        android:id="@+id/date"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="Date"
-                        android:textSize="14sp"
-                        android:textColor="@color/black"
-                        android:layout_marginTop="2dp"/>
-
-                    <TextView
-                        android:id="@+id/severity"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="(severity)"
-                        android:textSize="14sp"
-                        android:textColor="@color/black"
-                        android:layout_marginTop="2dp"/>
-
-                    <TextView
-                        android:id="@+id/location"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="Location"
-                        android:textSize="14sp"
-                        android:textColor="@color/black"
-                        android:layout_marginTop="2dp"/>
-
-
-                </LinearLayout>
-                <!-- Right: Image -->
-                <ImageView
-                    android:id="@+id/reportImage"
-                    android:layout_width="80dp"
-                    android:layout_height="80dp"
-                    android:scaleType="centerCrop"
-                    android:layout_marginStart="12dp"
-                    android:background="@drawable/border_rect" />
-            </LinearLayout>
-
-        </LinearLayout>
-
-
-
+            android:orientation="vertical" />
     </ScrollView>
 
 </LinearLayout>
