@@ -92,7 +92,7 @@
             android:layout_height="wrap_content"
             android:layout_marginStart="16dp"
             android:layout_weight="1"
-            android:text="2.  box and notifying you at the top. Severity is indicated by color: Yellow (Low)"
+            android:text="2. The bounding box will notify you at the top. Severity is indicated by color: Yellow (Low)"
             android:textColor="@color/black"
             android:textSize="16sp" />
 
