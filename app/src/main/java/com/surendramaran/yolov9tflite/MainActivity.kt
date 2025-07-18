@@ -123,10 +123,14 @@ class MainActivity : AppCompatActivity() {
         MEDIUM(R.color.orange),
         HIGH(R.color.red)
     }
-
+    // 📌 Main entry point of the activity.
+// Initializes camera, permissions, detector, location services, and sets up UI.
     override fun onCreate(savedInstanceState: Bundle?) {
+        // Initialize ViewBinding to access layout views
         super.onCreate(savedInstanceState)
         binding = ActivityMainBinding.inflate(layoutInflater)
+
+        // Initialize location client and shared preferences
         sharedPreferences = getSharedPreferences(PREFERENCES_NAME, MODE_PRIVATE)
         fusedLocationClient = LocationServices.getFusedLocationProviderClient(this)
 
@@ -190,7 +194,7 @@ class MainActivity : AppCompatActivity() {
                 1
             )
         }
-
+        // Check and request necessary permissions (camera, storage, location)
         if (allPermissionsGranted()) {
             startCamera()
         } else {
@@ -255,6 +259,8 @@ class MainActivity : AppCompatActivity() {
         return file.absolutePath
     }
 
+    // 🎥 Configures the camera preview and image analyzer for real-time detection.
+// Converts each frame to a Bitmap and passes it to the detection model.
     private fun bindCameraUseCases() {
         val cameraProvider = cameraProvider ?: throw IllegalStateException("Camera initialization failed.")
 
@@ -305,12 +311,13 @@ class MainActivity : AppCompatActivity() {
 
 
 
-
-
     private fun allPermissionsGranted() = REQUIRED_PERMISSIONS.all {
         ContextCompat.checkSelfPermission(baseContext, it) == PackageManager.PERMISSION_GRANTED
     }
 
+
+    // 💾 Stores detected frame bitmap, creates a placeholder record for manual reporting.
+// Used to mark red pins on the map before submission.
     private fun onDetectWithBitmap(rotatedBitmap: Bitmap) {
         detector?.detect(rotatedBitmap)
 
@@ -402,7 +409,8 @@ class MainActivity : AppCompatActivity() {
     }
     private var lastDetectionTime = 0L
     private val detectionInterval = 4000 // Adjust time in milliseconds (e.g., 4000ms = 4 seconds)
-
+    // 🧠 Handles detection results from the model.
+// Shows bounding boxes, alerts user, and updates detection overlay and timing.
     fun onDetect(boundingBoxes: List<BoundingBox>, inferenceTime: Long) {
         val currentTime = System.currentTimeMillis()
 
@@ -546,7 +554,8 @@ class MainActivity : AppCompatActivity() {
 
     }
 
-
+    // 🗺️ Displays a bottom sheet with the map and existing detection markers.
+// Also includes a menu button to navigate to other app features.
     private fun showBottomDialog() {
         val dialog = createDialog(R.layout.bottomsheetlayout)
         dialog.show()
@@ -1091,6 +1100,10 @@ class MainActivity : AppCompatActivity() {
 
         dialog.show()
     }
+
+
+    // ☁️ Uploads report data (text + image) to Firestore and Firebase Storage.
+// Called when user submits a manual report.
 
     private fun saveReportToFirebase(
         type: String,
