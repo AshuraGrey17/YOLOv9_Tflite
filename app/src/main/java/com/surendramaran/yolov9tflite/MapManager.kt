@@ -35,29 +35,44 @@ object MapManager {
 
         val geoPoint = GeoPoint(lat, lon)
         if (!isShowingSearchResult) {
-            userLocation = geoPoint // Save user location only when not showing a search
+            userLocation = geoPoint
         }
 
         val mapController = mapView.controller
         mapController.setZoom(15.0)
         mapController.setCenter(geoPoint)
 
-        mapView.overlays.clear()
+        // ✅ Instead of clearing all overlays, remove only the markers you control
+        mapView.overlays.removeAll {
+            it is Marker && it.title != "Your Location" && it.title != "Searched Location"
+        }
 
-        // Add current or searched location marker
-        val centerMarker = Marker(mapView)
-        centerMarker.position = geoPoint
-        centerMarker.setAnchor(Marker.ANCHOR_CENTER, Marker.ANCHOR_BOTTOM)
-        centerMarker.title = if (isShowingSearchResult) "Searched Location" else "Your Location"
-        mapView.overlays.add(centerMarker)
+        // ✅ Re-add your location or search marker
+        if (isShowingSearchResult) {
+            val centerMarker = Marker(mapView)
+            centerMarker.position = geoPoint
+            centerMarker.setAnchor(Marker.ANCHOR_CENTER, Marker.ANCHOR_BOTTOM)
+            centerMarker.title = "Searched Location"
+            centerMarker.icon = ContextCompat.getDrawable(context, R.drawable.marker_location) // use your hand icon
+            mapView.overlays.add(centerMarker)
+        }
 
-        // Add user location overlay
+
+        // ✅ Re-add user GPS overlay
         val locationOverlay = MyLocationNewOverlay(GpsMyLocationProvider(context), mapView)
         locationOverlay.enableMyLocation()
-        locationOverlay.enableFollowLocation()
+
+// 🔒 Never auto-follow — prevents snapping after GPS fix
+        //  if (!isShowingSearchResult) {
+            //  locationOverlay.enableFollowLocation()
+            //   }
+// Optionally allow manual follow later via button if needed
+
         mapView.overlays.add(locationOverlay)
 
-        // Add detection markers
+
+
+        // ✅ Add red and green markers from detectionRecords
         for (record in records) {
             val marker = Marker(mapView)
             marker.position = GeoPoint(record.latitude, record.longitude)
@@ -72,10 +87,18 @@ object MapManager {
 
             marker.setOnMarkerClickListener { _, _ ->
                 if (context is MainActivity) {
-                    context.showReportMenuDialog()
+                    context.selectedDetectionRecord = record
+
+                    if (record.isReported) {
+                        context.showReportedInfoDialog(record) // ✅ opens dialog for green marker
+                    } else {
+                        context.showReportMenuDialog() // ✅ still opens manual report for red marker
+                    }
                 }
                 true
             }
+
+
 
             mapView.overlays.add(marker)
         }
@@ -83,6 +106,25 @@ object MapManager {
         mapView.invalidate()
         Log.d("MapManager", "✅ Map centered on: $lat, $lon with ${records.size} records")
     }
+
+
+
+   // fun addReportedHazardMarker(
+    //    context: Context,
+    //   mapView: MapView,
+    //   location: GeoPoint,
+    //   type: String
+   //  ) {
+    //   val marker = Marker(mapView)
+    //   marker.position = location
+    //  marker.title = type
+    //   marker.icon = ContextCompat.getDrawable(context, R.drawable.marker_green)
+    //   mapView.overlays.add(marker)
+    //    mapView.invalidate()
+    //  }
+
+
+
 
     fun searchLocation(context: Context, mapView: MapView, query: String, records: List<DetectionRecord>) {
         try {

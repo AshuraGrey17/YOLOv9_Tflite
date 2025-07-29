@@ -135,7 +135,7 @@
 
         <!-- Detection TextViews -->
         <TextView
-            android:id="@+id/detection1"
+            android:id="@+id/detectionResultTextMain"
             android:layout_width="match_parent"
             android:padding="0dp"
             android:layout_height="40dp"
