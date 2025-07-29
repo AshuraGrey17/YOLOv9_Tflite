@@ -62,62 +62,58 @@
 
     <!-- ✅ Alert Toggle -->
     <LinearLayout
-        android:id="@+id/layoutAlerts"
+        android:id="@+id/HelpCameraLayout"
         android:orientation="horizontal"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:padding="10dp"
         android:gravity="center_vertical">
 
-        <ImageView
-            android:layout_width="40dp"
-            android:layout_height="40dp"
-            android:scaleType="fitCenter"
-            android:src="@drawable/alert" />
+
 
         <TextView
             android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:text="Alert"
+            android:text="Camera Activity Guide"
             android:textColor="@color/black"
             android:layout_marginStart="16dp"
             android:textSize="16sp"
             android:layout_weight="1" />
 
-        <Switch
-            android:theme="@style/CustomSwitchStyle"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:onClick="Alertswitch" />
+        <ImageView
+            android:id="@+id/CameraActivityHelpbutton"
+            android:layout_width="40dp"
+            android:layout_height="30dp"
+            android:scaleType="fitCenter"
+            android:src="@drawable/right_arrow"
+            android:layout_gravity="end"
+            android:layout_centerVertical="true"/>
+
     </LinearLayout>
 
     <!-- ✅ Alert Mode -->
     <LinearLayout
         android:layout_marginTop="8dp"
-        android:id="@+id/layoutAlertMode"
+        android:id="@+id/HelpProfileLayout"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:padding="10dp"
         android:gravity="center_vertical"
         android:orientation="horizontal">
 
-        <ImageView
-            android:layout_width="40dp"
-            android:layout_height="40dp"
-            android:scaleType="fitCenter"
-            android:src="@drawable/mode" />
+
 
         <TextView
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_marginStart="16dp"
             android:layout_weight="1"
-            android:text="Alert Mode"
+            android:text="Profile Guide"
             android:textColor="@color/black"
             android:textSize="16sp" />
 
         <ImageView
-            android:id="@+id/AlertmodeButton"
+            android:id="@+id/ProfileHelpbutton"
             android:layout_width="40dp"
             android:layout_height="30dp"
             android:scaleType="fitCenter"
@@ -130,96 +126,57 @@
     <!-- ✅ Notification Toggle -->
     <LinearLayout
         android:layout_marginTop="8dp"
-        android:id="@+id/layoutNotification"
+        android:id="@+id/HelpSettingsLayout"
         android:orientation="horizontal"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:padding="10dp"
         android:gravity="center_vertical">
 
-        <ImageView
-            android:layout_width="40dp"
-            android:layout_height="40dp"
-            android:scaleType="fitCenter"
-            android:src="@drawable/notification" />
 
         <TextView
             android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:text="Notification:"
+            android:text="Settings Guide"
             android:textColor="@color/black"
             android:layout_marginStart="16dp"
             android:textSize="16sp"
             android:layout_weight="1" />
 
-        <Switch
-            android:theme="@style/CustomSwitchStyle"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:onClick="Notificationsswitch" />
+        <ImageView
+            android:id="@+id/SettingsHelpbutton"
+            android:layout_width="40dp"
+            android:layout_height="30dp"
+            android:scaleType="fitCenter"
+            android:src="@drawable/right_arrow"
+            android:layout_gravity="end"
+            android:layout_centerVertical="true"/>
+
     </LinearLayout>
 
+    <!-- ✅ Night Mode Toggle -->
     <LinearLayout
         android:layout_marginTop="8dp"
-        android:id="@+id/layoutHelp"
+        android:id="@+id/HelpReportLayout"
         android:orientation="horizontal"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:padding="10dp"
         android:gravity="center_vertical">
 
-        <ImageView
-            android:layout_width="40dp"
-            android:layout_height="40dp"
-            android:scaleType="fitCenter"
-            android:src="@drawable/help" />
+
 
         <TextView
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_marginStart="16dp"
             android:layout_weight="1"
-            android:text="Help"
+            android:text="Report Guide"
             android:textColor="@color/black"
             android:textSize="16sp" />
 
         <ImageView
-            android:id="@+id/HelpButton"
-            android:layout_width="40dp"
-            android:layout_height="30dp"
-            android:scaleType="fitCenter"
-            android:src="@drawable/right_arrow"
-            android:layout_centerVertical="true" />
-
-    </LinearLayout>
-
-    <!-- ✅ Reset -->
-    <LinearLayout
-        android:layout_marginTop="8dp"
-        android:id="@+id/layoutReset"
-        android:orientation="horizontal"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:padding="10dp"
-        android:gravity="center_vertical">
-
-        <ImageView
-            android:layout_width="40dp"
-            android:layout_height="40dp"
-            android:scaleType="fitCenter"
-            android:src="@drawable/reset" />
-
-        <TextView
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:text="Reset"
-            android:textColor="@color/black"
-            android:layout_marginStart="16dp"
-            android:textSize="16sp"
-            android:layout_weight="1" />
-
-        <ImageView
-            android:id="@+id/ResetButton"
+            android:id="@+id/ReportHelpbutton"
             android:layout_width="40dp"
             android:layout_height="30dp"
             android:scaleType="fitCenter"
@@ -227,39 +184,5 @@
             android:layout_centerVertical="true" />
     </LinearLayout>
 
-    <!-- ✅ External Camera Option -->
-    <LinearLayout
-        android:layout_marginTop="8dp"
-        android:id="@+id/layoutExternalCamera"
-        android:orientation="horizontal"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:padding="10dp"
-        android:gravity="center_vertical">
-
-        <ImageView
-            android:layout_width="40dp"
-            android:layout_height="40dp"
-            android:scaleType="fitCenter"
-            android:src="@drawable/camera" />
-
-        <TextView
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:text="Choose External Camera"
-            android:textColor="@color/black"
-            android:layout_marginStart="16dp"
-            android:textSize="16sp"
-            android:layout_weight="1" />
-
-        <ImageView
-            android:id="@+id/ChooseExternalCameraButton"
-            android:layout_width="40dp"
-            android:layout_height="30dp"
-            android:scaleType="fitCenter"
-            android:src="@drawable/right_arrow"
-            android:layout_gravity="end"
-            android:layout_centerVertical="true" />
-    </LinearLayout>
 
 </LinearLayout>
