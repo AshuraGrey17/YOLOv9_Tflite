@@ -159,7 +159,6 @@
             android:onClick="Notificationsswitch" />
     </LinearLayout>
 
-    <!-- ✅ Night Mode Toggle -->
     <LinearLayout
         android:layout_marginTop="8dp"
         android:id="@+id/layoutHelp"
